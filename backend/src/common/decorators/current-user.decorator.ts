@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { User } from '../../common/interfaces/user.interface'; // Use interface
+import { User } from '../interfaces/user.interface'; // Use interface
 
 export const CurrentUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): User => {

@@ -8,16 +8,22 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { MailModule } from '../mail/mail.module';
+import { TwoFactorAuthenticationController } from './2fa.controller';
+import { TwoFactorAuthenticationService } from './2fa.service';
+import { UsersModule } from '../users/users.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     PassportModule,
+    ConfigModule,
     JwtModule.register(jwtConfig),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    MailModule
+    MailModule,
+    UsersModule,
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  controllers: [AuthController, TwoFactorAuthenticationController],
+  providers: [AuthService, JwtStrategy, TwoFactorAuthenticationService],
+  exports: [AuthService, TwoFactorAuthenticationService],
 })
-export class AuthModule {}
+export class AuthModule { }

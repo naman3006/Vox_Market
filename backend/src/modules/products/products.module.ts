@@ -16,5 +16,6 @@ import { UploadModule } from '../upload/upload.module';
   ],
   controllers: [ProductsController],
   providers: [ProductsService],
+  exports: [ProductsService],
 })
-export class ProductsModule {}
+export class ProductsModule { }

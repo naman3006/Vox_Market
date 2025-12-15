@@ -6,6 +6,7 @@ import { findCart } from "../../store/slices/cartSlice";
 import { findWishlist } from "../../store/slices/wishlistSlice";
 import { findAllNotifications } from "../../store/slices/notificationsSlice";
 import Navbar from "./Navbar";
+import ChatWidget from "../Chat/ChatWidget";
 
 const Layout = () => {
   const dispatch = useDispatch();
@@ -33,6 +34,7 @@ const Layout = () => {
           <p>&copy; 2025 E-Shop. Crafted with ❤️ for excellence.</p>
         </div>
       </footer>
+      <ChatWidget /> {/* Render ChatWidget at the bottom */}
     </div>
   );
 };

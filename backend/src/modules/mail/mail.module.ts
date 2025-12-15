@@ -35,6 +35,18 @@ import { MailService } from './mail.service';
             console.log('[MailModule] --------------------------------------------------');
           } catch (err) {
             console.error('[MailModule] Failed to create Ethereal test account', err);
+            console.warn('[MailModule] Falling back to environment configuration');
+
+            // Fallback to Env Config if Ethereal fails
+            transportConfig = {
+              host: configService.get('MAIL_HOST', 'smtp.gmail.com'),
+              port: configService.get('MAIL_PORT', 587),
+              secure: false,
+              auth: {
+                user: mailUser,
+                pass: configService.get('MAIL_PASSWORD'),
+              },
+            };
           }
         } else {
           // Production or Non-Dev: Use configured credentials

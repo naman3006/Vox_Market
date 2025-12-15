@@ -4,7 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 import ReviewCard from '../components/ReviewCard/ReviewCard';
-import { findOneProduct } from '../store/slices/productsSlice';
+import ProductCard from '../components/ProductCard/ProductCard';
+import { findOneProduct, findProductRecommendations, selectRecommendations } from '../store/slices/productsSlice';
 import { createReview, findReviewsByProduct } from '../store/slices/reviewsSlice';
 import { addToWishlist } from '../store/slices/wishlistSlice';
 import { addToCart } from '../store/slices/cartSlice';
@@ -15,6 +16,7 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { product, loading } = useSelector((state) => state.products);
+  const recommendations = useSelector(selectRecommendations);
   const { reviews, loading: reviewsLoading } = useSelector((state) => state.reviews);
   const { token } = useSelector((state) => state.auth);
   const [quantity, setQuantity] = useState(1);
@@ -24,6 +26,7 @@ const ProductDetail = () => {
   useEffect(() => {
     dispatch(findOneProduct(id));
     dispatch(findReviewsByProduct(id));
+    dispatch(findProductRecommendations({ id, limit: 4 }));
 
   }, [dispatch, id]);
 
@@ -183,6 +186,19 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+
+      {recommendations && recommendations.length > 0 && (
+        <div className="p-8 border-t border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Bought Together</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {recommendations.map((rec) => (
+              <div key={rec._id} className="animate-fade-in">
+                <ProductCard product={rec} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="p-8 border-t border-gray-200">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Reviews</h2>

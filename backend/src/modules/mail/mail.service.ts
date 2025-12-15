@@ -682,4 +682,41 @@ export class MailService {
       return { success: false, error: error.message };
     }
   }
+
+  /**
+   * Send 2FA Code Email
+   */
+  async send2FACodeEmail(email: string, code: string): Promise<SendMailResult> {
+    if (!email) {
+      return { success: false, error: 'No email provided' };
+    }
+
+    try {
+      const info = await this.mailerService.sendMail({
+        to: email,
+        subject: '🔐 2FA Login Code',
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h2>Two-Factor Authentication</h2>
+            <p>Your login verification code is:</p>
+            <h1 style="color: #4F46E5; letter-spacing: 5px;">${code}</h1>
+            <p>Enter this code to access your account.</p>
+          </div>
+        `,
+      });
+
+      let previewUrl = null;
+      if (this.isDev) {
+        // @ts-ignore
+        previewUrl = nodemailer.getTestMessageUrl(info);
+        if (previewUrl) {
+          this.logger.log(`[Ethereal 2FA] Preview URL: ${previewUrl}`);
+        }
+      }
+      return { success: true, previewUrl };
+    } catch (error) {
+      this.logger.error(`Failed to send 2FA email: ${error.message}`);
+      return { success: false, error: error.message };
+    }
+  }
 }

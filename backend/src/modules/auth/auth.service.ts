@@ -7,17 +7,19 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import { TwoFactorAuthenticationService } from './2fa.service';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import * as speakeasy from 'speakeasy';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { User, UserDocument } from './schemas/user.schema';
 import {
   User as UserInterface,
-  UserRole,
 } from '../../common/interfaces/user.interface';
+import { UserRole } from '../../common/enums/user-role.enum';
 import { MailService } from '../mail/mail.service';
 
 @Injectable()
@@ -31,6 +33,7 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private mailService: MailService,
+    private readonly twoFactorAuthenticationService: TwoFactorAuthenticationService,
   ) { }
 
   async register(
@@ -60,7 +63,7 @@ export class AuthService {
         email: email.toLowerCase(),
         password: hashedPassword,
         name: name.trim(),
-        role: UserRole.USER,
+        role: UserRole.user,
         loginAttempts: 0,
         lockUntil: null,
       });
@@ -83,12 +86,13 @@ export class AuthService {
 
   async login(
     loginDto: LoginDto,
-  ): Promise<{ user: UserInterface; token: string }> {
-    const { email, password } = loginDto;
+  ): Promise<{ user: UserInterface; token?: string; isTwoFactorAuthenticationEnabled?: boolean }> {
+    const { email, password, twoFactorAuthenticationCode } = loginDto;
 
     const userDoc = await this.userModel.findOne({
       email: email.toLowerCase(),
-    });
+    }).select('+twoFactorAuthenticationSecret +password +isTwoFactorEnabled +lockUntil +loginAttempts');
+
     if (!userDoc) {
       this.logger.warn(`Login attempt with non-existent email: ${email}`);
       throw new UnauthorizedException('Invalid credentials');
@@ -124,6 +128,34 @@ export class AuthService {
       await userDoc.save();
     }
 
+    if (userDoc.isTwoFactorEnabled) {
+      // Generate and log the token for testing login
+      const token = speakeasy.totp({
+        secret: userDoc.twoFactorAuthenticationSecret,
+        encoding: 'base32',
+      });
+      console.log(`[DEBUG] LOGIN 2FA CODE: ${token}`);
+
+      if (!twoFactorAuthenticationCode) {
+        // Send email with code
+        const mailResult = await this.mailService.send2FACodeEmail(userDoc.email, token);
+
+        return {
+          user: this.sanitizeUser(userDoc),
+          isTwoFactorAuthenticationEnabled: true,
+          // @ts-ignore
+          twoFactorAuthUrl: mailResult.previewUrl,
+        };
+      }
+      const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
+        twoFactorAuthenticationCode,
+        userDoc,
+      );
+      if (!isCodeValid) {
+        throw new UnauthorizedException('Wrong authentication code');
+      }
+    }
+
     const token = this.generateToken(
       userDoc._id.toString(),
       userDoc.email,
@@ -151,6 +183,7 @@ export class AuthService {
       email: userDoc.email,
       role: userDoc.role,
       name: userDoc.name,
+      isTwoFactorEnabled: userDoc.isTwoFactorEnabled,
     };
   }
 

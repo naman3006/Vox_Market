@@ -51,6 +51,14 @@ export const login = createAsyncThunk(
     try {
       const res = await api.post("/auth/login", data);
 
+      if (res.data.data.isTwoFactorAuthenticationEnabled) {
+        return {
+          isTwoFactorAuthenticationEnabled: true,
+          user: res.data.data.user,
+          twoFactorAuthUrl: res.data.data.twoFactorAuthUrl,
+        };
+      }
+
       return {
         email: res.data.data.user.email,
         user: res.data.data.user,
@@ -215,6 +223,10 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
+
+        if (action.payload.isTwoFactorAuthenticationEnabled) {
+          return;
+        }
 
         state.users[action.payload.email] = {
           user: action.payload.user,

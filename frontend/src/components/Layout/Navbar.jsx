@@ -52,6 +52,23 @@ const Navbar = () => {
                         />
                     </Link>
 
+                    {/* Search Bar */}
+                    <div className="hidden md:flex flex-1 max-w-lg mx-8 relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="I'm shopping for..."
+                            className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-full leading-5 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 sm:text-sm transition-all shadow-sm hover:shadow-md"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    navigate(`/products?search=${encodeURIComponent(e.target.value)}`);
+                                }
+                            }}
+                        />
+                    </div>
+
                     {/* Mobile Menu Button */}
                     <div className="flex items-center md:hidden gap-4">
                         {token && (

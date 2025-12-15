@@ -85,6 +85,22 @@ export const findRelatedProducts = createAsyncThunk(
   }
 );
 
+// ---------------- Recommendations ----------------
+export const findProductRecommendations = createAsyncThunk(
+  'products/findRecommendations',
+  async ({ id, limit = 4 }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/recommendations/products/${id}`, { params: { limit } });
+      return response.data; // Controller returns array directly
+    } catch (error) {
+      return rejectWithValue({
+        message: error.response?.data?.message || 'Failed to fetch recommendations',
+        status: error.response?.status,
+      });
+    }
+  }
+);
+
 // ---------------- CREATE PRODUCT (Updated) ----------------
 export const createProduct = createAsyncThunk(
   'products/create',
@@ -192,9 +208,11 @@ const initialState = {
   product: null,
   featuredProducts: [],
   relatedProducts: [],
+  recommendations: [],
   loading: false,
   featuredLoading: false,
   relatedLoading: false,
+  recommendationsLoading: false,
   error: null,
   currentPage: 1,
   totalPages: 1,
@@ -278,6 +296,20 @@ const productsSlice = createSlice({
         state.error = action.payload;
       })
 
+      // recommendations
+      .addCase(findProductRecommendations.pending, (state) => {
+        state.recommendationsLoading = true;
+        state.error = null;
+      })
+      .addCase(findProductRecommendations.fulfilled, (state, action) => {
+        state.recommendationsLoading = false;
+        state.recommendations = action.payload || [];
+      })
+      .addCase(findProductRecommendations.rejected, (state, action) => {
+        state.recommendationsLoading = false;
+        state.error = action.payload;
+      })
+
       // create
       .addCase(createProduct.pending, (state) => {
         state.loading = true;
@@ -333,6 +365,7 @@ export const selectAllProducts = (state) => state.products.products;
 export const selectProduct = (state) => state.products.product;
 export const selectProductsLoading = (state) => state.products.loading;
 export const selectProductsError = (state) => state.products.error;
+export const selectRecommendations = (state) => state.products.recommendations;
 export const selectPagination = (state) => ({
   currentPage: state.products.currentPage,
   totalPages: state.products.totalPages,

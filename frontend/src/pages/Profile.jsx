@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateProfile, uploadAvatar, deleteAccount } from '../store/slices/authSlice';
+import { updateProfile, uploadAvatar, deleteAccount, getProfile } from '../store/slices/authSlice';
 import { toast } from 'react-toastify';
+import api from '../store/api/api';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -16,6 +17,10 @@ const Profile = () => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
+
+  useEffect(() => {
+    dispatch(getProfile());
+  }, [dispatch]);
 
   useEffect(() => {
     if (user) {
@@ -60,7 +65,38 @@ const Profile = () => {
     }
   };
 
-  // ... (keeping imports and logic same, just updating the return JSX)
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [secret, setSecret] = useState('');
+  const [otpauthUrl, setOtpauthUrl] = useState('');
+  const [debugUrl, setDebugUrl] = useState('');
+  const [showTwoFactorSetup, setShowTwoFactorSetup] = useState(false);
+
+  const handleEnable2FA = async () => {
+    try {
+      const response = await api.post('/auth/2fa/generate');
+      console.log('2FA Generate Response:', response.data);
+      setQrCodeUrl(response.data.qrCodeUrl);
+      setSecret(response.data.secret);
+      setOtpauthUrl(response.data.otpauthUrl);
+      setDebugUrl(response.data.debugUrl);
+      setShowTwoFactorSetup(true);
+    } catch (err) {
+      toast.error('Failed to generate 2FA QR Code');
+    }
+  };
+  const handleVerify2FA = async () => {
+    try {
+      await api.post('/auth/2fa/turn-on', { twoFactorAuthenticationCode: twoFactorCode });
+      toast.success('Two-factor authentication enabled!');
+      setShowTwoFactorSetup(false);
+      // Refresh profile to update UI
+      dispatch(getProfile());
+    } catch (err) {
+      toast.error('Invalid code. Please try again.');
+    }
+  };
+
   if (!user) {
     return (
       <div className="flex justify-center items-center h-[60vh]">
@@ -227,6 +263,44 @@ const Profile = () => {
                       <span className="font-mono text-xs text-gray-500 uppercase">{user.role}</span>
                     </div>
                   </div>
+
+                  <div className="mt-8 pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      Security
+                    </h3>
+                    <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-gray-700 font-medium">Two-Factor Auth</span>
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${user.isTwoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                          {user.isTwoFactorEnabled ? 'Enabled' : 'Disabled'}
+                        </span>
+                      </div>
+                      {!user.isTwoFactorEnabled ? (
+                        <button
+                          onClick={handleEnable2FA}
+                          className="w-full py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 font-semibold text-sm transition-colors"
+                        >
+                          Enable 2FA
+                        </button>
+                      ) : (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await api.post('/auth/2fa/turn-off');
+                              toast.success('Two-factor authentication disabled');
+                              dispatch(getProfile());
+                            } catch (err) {
+                              toast.error('Failed to disable 2FA');
+                            }
+                          }}
+                          className="w-full py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-semibold text-sm transition-colors"
+                        >
+                          Disable 2FA
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -385,6 +459,72 @@ const Profile = () => {
                 {loading ? 'Deleting...' : 'Delete It'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showTwoFactorSetup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 animate-scale-up border border-gray-100 text-center">
+            <h3 className="text-xl font-bold mb-4">Setup 2FA</h3>
+            <p className="text-sm text-gray-500 mb-4">Scan the QR code with Google Authenticator</p>
+            {/* QR Code */}
+            {qrCodeUrl && <img src={qrCodeUrl} alt="QR Code" className="mx-auto mb-4 w-48 h-48" />}
+
+            {/* Links Block */}
+            {otpauthUrl && (
+              <a
+                href={otpauthUrl}
+                className="inline-block px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-bold text-sm transition-colors border border-blue-200"
+              >
+                Open in Authenticator App ↗
+              </a>
+            )}
+
+            {secret && (
+              <div className="mb-6 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide font-bold">Manual Entry Secret</p>
+                <p className="font-mono text-sm font-bold text-gray-700 break-all select-all">{secret}</p>
+              </div>
+            )}
+
+            <input
+              type="text"
+              value={twoFactorCode}
+              onChange={(e) => setTwoFactorCode(e.target.value)}
+              placeholder="Enter 6-digit code"
+              className="w-full px-4 py-2 border rounded-lg mb-4 text-center tracking-widest"
+              maxLength={6}
+            />
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowTwoFactorSetup(false)}
+                className="flex-1 py-2 bg-gray-100 rounded-lg font-bold text-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleVerify2FA}
+                className="flex-1 py-2 bg-indigo-600 text-white rounded-lg font-bold"
+              >
+                Verify
+              </button>
+            </div>
+
+            {/* Debug Link Moved Here */}
+            {debugUrl && (
+              <div className="mt-4">
+                <a
+                  href={debugUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 font-bold text-sm transition-colors border border-purple-200"
+                >
+                  View 2FA Code on Ethereal Email ↗
+                </a>
+              </div>
+            )}
           </div>
         </div>
       )}

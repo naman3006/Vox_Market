@@ -20,6 +20,12 @@ export class User {
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Address' }] })
   addresses: Types.ObjectId[];
+
+  @Prop({ nullable: true, select: false })
+  twoFactorAuthenticationSecret: string;
+
+  @Prop({ default: false })
+  isTwoFactorEnabled: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -71,4 +71,8 @@ export class NotificationsService {
   sendRealTimeUpdate(userId: string, event: string, payload: any) {
     this.notificationGateway.server.to(userId).emit(event, payload);
   }
+
+  sendToRole(role: string, event: string, payload: any) {
+    this.notificationGateway.server.to(`role:${role}`).emit(event, payload);
+  }
 }

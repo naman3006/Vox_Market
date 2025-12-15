@@ -133,6 +133,12 @@ export class OrdersService {
         );
       }
 
+      // 4. Real-time update to Admins
+      this.notificationsService.sendToRole('admin', 'order.created', {
+        orderId: savedOrder._id,
+        order: savedOrder,
+      });
+
       this.invalidateUserOrdersCache(userId);
       return savedOrder;
     } catch (error) {
@@ -543,6 +549,13 @@ export class OrdersService {
 
       // Real-time update to user
       this.notificationsService.sendRealTimeUpdate(order.userId.toString(), 'order_update', payload);
+
+      // Real-time update to Admins
+      this.notificationsService.sendToRole('admin', 'order.status.updated', {
+        orderId: id,
+        status: updateOrderStatusDto.orderStatus,
+        order: order
+      });
 
       // 1. Notify Buyer (Persistent Notification)
       await this.notificationsService.create(

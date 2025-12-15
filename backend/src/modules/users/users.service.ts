@@ -45,4 +45,27 @@ export class UsersService {
     if (result.deletedCount === 0)
       throw new NotFoundException('User not found');
   }
+
+  async setTwoFactorAuthenticationSecret(secret: string, userId: string) {
+    return this.userModel.findByIdAndUpdate(userId, {
+      twoFactorAuthenticationSecret: secret,
+    });
+  }
+
+  async turnOnTwoFactorAuthentication(userId: string) {
+    return this.userModel.findByIdAndUpdate(userId, {
+      isTwoFactorEnabled: true,
+    });
+  }
+
+  async findByIdWith2FASecret(id: string): Promise<UserDocument> {
+    return this.userModel.findById(id).select('+twoFactorAuthenticationSecret').exec();
+  }
+
+  async turnOffTwoFactorAuthentication(userId: string) {
+    return this.userModel.findByIdAndUpdate(userId, {
+      isTwoFactorEnabled: false,
+      twoFactorAuthenticationSecret: null,
+    });
+  }
 }

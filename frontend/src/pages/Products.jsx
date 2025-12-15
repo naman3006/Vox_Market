@@ -15,8 +15,11 @@ import {
 import ProductCard from "../components/ProductCard/ProductCard";
 import { toast } from "react-toastify";
 
+import { useSearchParams } from "react-router-dom";
+
 const Products = () => {
   const dispatch = useDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Redux selectors
   const products = useSelector(selectAllProducts);
@@ -26,9 +29,10 @@ const Products = () => {
   const categories = useSelector(selectAllCategories);
 
   // Local state
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const [filters, setFilters] = useState({
     category: "",
-    search: "",
+    search: searchParams.get("search") || "",
     minPrice: "",
     maxPrice: "",
     sortBy: "createdAt",
@@ -36,6 +40,26 @@ const Products = () => {
     page: 1,
     limit: 20,
   });
+
+  // Sync searchTerm with URL and debounce update filters
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setFilters(prev => {
+        if (prev.search === searchTerm) return prev;
+        return { ...prev, search: searchTerm, page: 1 };
+      });
+
+      // Update URL
+      if (searchTerm) {
+        searchParams.set("search", searchTerm);
+      } else {
+        searchParams.delete("search");
+      }
+      setSearchParams(searchParams, { replace: true });
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm, searchParams]);
 
   // Memoize filters to avoid unnecessary re-renders
   const memoizedFilters = useMemo(
@@ -59,6 +83,10 @@ const Products = () => {
 
   // Handle filter changes
   const handleFilterChange = useCallback((key, value) => {
+    if (key === 'search') {
+      setSearchTerm(value);
+      return;
+    }
     setFilters((prev) => ({
       ...prev,
       [key]: value,
@@ -103,7 +131,8 @@ const Products = () => {
             Refine Selection
           </h2>
           <button
-            onClick={() =>
+            onClick={() => {
+              setSearchTerm("");
               setFilters({
                 category: "",
                 search: "",
@@ -113,8 +142,8 @@ const Products = () => {
                 sortOrder: "desc",
                 page: 1,
                 limit: 20,
-              })
-            }
+              });
+            }}
             className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline transition-colors"
           >
             Clear all filters
@@ -129,7 +158,7 @@ const Products = () => {
               <input
                 type="text"
                 placeholder="Search products..."
-                value={filters.search}
+                value={searchTerm}
                 onChange={(e) => handleFilterChange("search", e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
               />

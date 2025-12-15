@@ -20,6 +20,9 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { FilesModule } from './modules/files/files.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { RecommendationsModule } from './modules/recommendations/recommendations.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
+
 
 @Module({
   imports: [
@@ -29,7 +32,7 @@ import { join } from 'path';
     }),
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(
-      process.env.MONGODB_URI || 'mongodb://localhost/ecommerce',
+      process.env.MONGODB_URI || 'mongodb://localhost/ecommerce-new-features',
     ),
     EventEmitterModule.forRoot(),
     // Feature Modules
@@ -48,6 +51,8 @@ import { join } from 'path';
     CouponsModule,
     AnalyticsModule,
     FilesModule,
+    RecommendationsModule,
+    ChatbotModule,
   ],
   controllers: [],
   providers: [],
