@@ -64,11 +64,23 @@ const notificationsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(markAsRead.fulfilled, (state, action) => {
+      .addCase(markAsRead.pending, (state, action) => {
+        // Optimistic update
         const index = state.notifications.findIndex(
           (n) => (n._id || n.id) === action.meta.arg
         );
         if (index !== -1) state.notifications[index].read = true;
+      })
+      .addCase(markAsRead.fulfilled, (state, action) => {
+        // Already handled in pending, but we can ensure consistency or do nothing
+      })
+      .addCase(markAsRead.rejected, (state, action) => {
+        // Revert on failure
+        const index = state.notifications.findIndex(
+          (n) => (n._id || n.id) === action.meta.arg
+        );
+        if (index !== -1) state.notifications[index].read = false;
+        state.error = action.payload;
       })
       .addCase(markAllNotificationsAsRead.fulfilled, (state) => {
         state.notifications.forEach(n => n.read = true);

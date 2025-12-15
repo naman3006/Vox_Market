@@ -238,6 +238,68 @@ const Profile = () => {
                 </div>
               </div>
 
+              {/* Loyalty & Rewards Card */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 border border-indigo-500 shadow-lg text-white">
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h3 className="text-sm font-bold text-indigo-100 uppercase tracking-wider flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
+                        Loyalty & Rewards
+                      </h3>
+                      <p className="text-indigo-200 text-sm mt-1">Earn points with every purchase!</p>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/30">
+                      <span className="font-bold text-sm uppercase tracking-wide">{user.loyaltyTier || 'Bronze'} Member</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    <div>
+                      <p className="text-indigo-200 text-xs uppercase font-bold tracking-wider mb-1">Current Balance</p>
+                      <p className="text-4xl font-bold">{user.loyaltyPoints || 0} <span className="text-lg font-medium text-indigo-200">Points</span></p>
+                    </div>
+                    <div>
+                      {/* Simple tier progress logic for display */}
+                      {(!user.loyaltyTier || user.loyaltyTier === 'Bronze') && (
+                        <>
+                          <div className="flex justify-between text-xs font-medium mb-2 text-indigo-100">
+                            <span>Bronze</span>
+                            <span>Silver (500 pts)</span>
+                          </div>
+                          <div className="h-2 bg-black/20 rounded-full overflow-hidden">
+                            <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${Math.min(100, ((user.totalPointsEarned || 0) / 500) * 100)}%` }}></div>
+                          </div>
+                          <p className="text-xs mt-2 text-indigo-200">
+                            {Math.max(0, 500 - (user.totalPointsEarned || 0))} points to Silver
+                          </p>
+                        </>
+                      )}
+                      {user.loyaltyTier === 'Silver' && (
+                        <>
+                          <div className="flex justify-between text-xs font-medium mb-2 text-indigo-100">
+                            <span>Silver</span>
+                            <span>Gold (2000 pts)</span>
+                          </div>
+                          <div className="h-2 bg-black/20 rounded-full overflow-hidden">
+                            <div className="h-full bg-gray-300 rounded-full" style={{ width: `${Math.min(100, ((user.totalPointsEarned || 0) / 2000) * 100)}%` }}></div>
+                          </div>
+                          <p className="text-xs mt-2 text-indigo-200">
+                            {Math.max(0, 2000 - (user.totalPointsEarned || 0))} points to Gold
+                          </p>
+                        </>
+                      )}
+                      {user.loyaltyTier === 'Gold' && (
+                        <div className="flex items-center gap-2 text-yellow-300 font-bold">
+                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.699-3.181a1 1 0 011.827.954L17.18 7.51l3.979 1.79a1 1 0 01-1.42 1.638l-4.223-1.9-1.517 2.84zm0 0L8.418 5.717l-4.223 1.9a1 1 0 01-1.42-1.638l3.98-1.79L5.32 3.86a1 1 0 011.826-.954l1.7 3.18L10 3.323V3a1 1 0 011-1z" clipRule="evenodd" /></svg>
+                          <span>Top Tier Status Achieved!</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Status Card */}
               <div className="space-y-6">
                 <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 h-full">

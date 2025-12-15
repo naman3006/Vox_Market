@@ -23,6 +23,7 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { NotificationGateway } from '../notifications/notification.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CouponsService } from '../coupons/coupons.service';
+import { LoyaltyService } from '../loyalty/loyalty.service';
 
 @Injectable()
 export class OrdersService {
@@ -36,6 +37,7 @@ export class OrdersService {
     private notificationsService: NotificationsService,
     private eventEmitter: EventEmitter2,
     private couponsService: CouponsService,
+    private loyaltyService: LoyaltyService,
     @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
   ) { }
 
@@ -575,6 +577,21 @@ export class OrdersService {
           `Order #${order._id} status updated to ${updateOrderStatusDto.orderStatus} by Admin`,
           'order'
         );
+      }
+
+      // 3. Award Loyalty Points if Delivered
+      if (updateOrderStatusDto.orderStatus === 'delivered') {
+        try {
+          await this.loyaltyService.awardPoints(order.userId.toString(), order.totalAmount);
+          // Notify user about points
+          await this.notificationsService.create(
+            order.userId.toString(),
+            `You earned points for your recent order!`,
+            'info'
+          );
+        } catch (err) {
+          this.logger.error(`Failed to award points for order ${order._id}: ${err.message}`);
+        }
       }
 
       this.invalidateUserOrdersCache(order.userId.toString());

@@ -14,6 +14,8 @@ import {
 } from "../store/slices/categoriesSlice";
 import ProductCard from "../components/ProductCard/ProductCard";
 import { toast } from "react-toastify";
+import useVoiceSearch from "../hooks/useVoiceSearch";
+import { parseVoiceCommand } from "../utils/voiceUtils";
 
 import { useSearchParams } from "react-router-dom";
 
@@ -40,6 +42,38 @@ const Products = () => {
     page: 1,
     limit: 20,
   });
+
+  const { isListening, transcript, interimTranscript, startListening, error: voiceError } = useVoiceSearch();
+
+  // Handle voice search results
+  useEffect(() => {
+    if (transcript) {
+      const updates = parseVoiceCommand(transcript, categories);
+      if (updates) {
+        setFilters(prev => ({ ...prev, ...updates, page: 1 }));
+        if (updates.search) setSearchTerm(updates.search);
+
+        // Show feedback
+        const feedback = [];
+        if (updates.category) feedback.push(`Category set to ${categories.find(c => c._id === updates.category)?.name}`);
+        if (updates.minPrice) feedback.push(`Min price: ${updates.minPrice}`);
+        if (updates.maxPrice) feedback.push(`Max price: ${updates.maxPrice}`);
+        if (updates.sortBy) feedback.push(`Sorted by ${updates.sortBy}`);
+        if (updates.search) feedback.push(`Searching for "${updates.search}"`);
+
+        if (feedback.length > 0) {
+          toast.success(`Voice command recognized: ${feedback.join(", ")}`);
+        }
+      }
+    }
+  }, [transcript, categories]);
+
+  // Handle voice errors
+  useEffect(() => {
+    if (voiceError) {
+      toast.error(voiceError);
+    }
+  }, [voiceError]);
 
   // Sync searchTerm with URL and debounce update filters
   useEffect(() => {
@@ -157,12 +191,21 @@ const Products = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search products..."
-                value={searchTerm}
+                placeholder={isListening ? "Listening..." : "Search products..."}
+                value={isListening ? (interimTranscript || transcript) : searchTerm}
                 onChange={(e) => handleFilterChange("search", e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none ${isListening ? 'placeholder-red-400' : ''}`}
               />
               <svg className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <button
+                onClick={startListening}
+                className={`absolute right-3 top-2.5 transition-colors ${isListening ? 'text-red-500 animate-pulse' : 'text-gray-400 hover:text-primary-600'}`}
+                title="Voice Search"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </button>
             </div>
           </div>
 

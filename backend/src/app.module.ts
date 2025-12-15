@@ -24,8 +24,11 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
 
 
+import { LoyaltyModule } from './modules/loyalty/loyalty.module';
+
 @Module({
   imports: [
+    LoyaltyModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',

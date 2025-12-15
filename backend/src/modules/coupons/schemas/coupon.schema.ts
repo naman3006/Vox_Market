@@ -30,6 +30,9 @@ export class Coupon {
   @Prop({ required: true, min: 0 })
   discountValue: number; // Percentage (0-100) or fixed amount
 
+  @Prop({ min: 0 })
+  costInPoints: number; // Points required to redeem this coupon
+
   @Prop({ min: 0, default: 0 })
   minPurchaseAmount: number; // Minimum cart value to apply coupon
 

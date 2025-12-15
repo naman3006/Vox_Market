@@ -2,6 +2,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { UserRole } from '../../../common/enums/user-role.enum';
 
+export enum LoyaltyTier {
+  BRONZE = 'Bronze',
+  SILVER = 'Silver',
+  GOLD = 'Gold',
+}
+
 export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
@@ -47,6 +53,16 @@ export class User {
 
   @Prop({ default: false })
   isTwoFactorEnabled: boolean;
+
+  // Loyalty System
+  @Prop({ default: 0 })
+  loyaltyPoints: number;
+
+  @Prop({ enum: LoyaltyTier, default: LoyaltyTier.BRONZE })
+  loyaltyTier: LoyaltyTier;
+
+  @Prop({ default: 0 })
+  totalPointsEarned: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

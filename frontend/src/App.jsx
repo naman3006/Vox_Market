@@ -30,6 +30,7 @@ import OrderManagement from "./pages/OrderManagement";
 import SellerOrders from "./pages/SellerOrders";
 import CategoryManagement from "./pages/CategoryManagement";
 import CouponManagement from "./components/CouponManagement/CouponManagement";
+import RewardsCenter from "./pages/RewardsCenter";
 import { getProfile } from "./store/slices/authSlice";
 
 // import { io } from "socket.io-client"; // Removed, using Context
@@ -142,6 +143,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <Addresses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="rewards"
+            element={
+              <ProtectedRoute>
+                <RewardsCenter />
               </ProtectedRoute>
             }
           />

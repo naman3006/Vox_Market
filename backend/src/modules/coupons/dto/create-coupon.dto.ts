@@ -41,6 +41,11 @@ export class CreateCouponDto {
     @Min(0)
     maxDiscountAmount?: number;
 
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    costInPoints?: number;
+
     @Type(() => Date)
     @IsDate()
     validFrom: Date;

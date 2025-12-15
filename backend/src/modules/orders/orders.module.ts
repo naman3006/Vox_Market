@@ -10,6 +10,7 @@ import { OrdersListener } from './orders.listener';
 import { OrderEventsListener } from './order-events.listener';
 import { MailModule } from '../mail/mail.module';
 import { CouponsModule } from '../coupons/coupons.module';
+import { LoyaltyModule } from '../loyalty/loyalty.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CouponsModule } from '../coupons/coupons.module';
     UsersModule,
     MailModule,
     CouponsModule,
+    LoyaltyModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersListener, OrderEventsListener],

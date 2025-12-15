@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import logo from '../../assets/LOGO2.jpeg';
+import useVoiceSearch from '../../hooks/useVoiceSearch';
 
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -12,6 +13,21 @@ const Navbar = () => {
     const { notifications } = useSelector((state) => state.notifications);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const { isListening, transcript, startListening, error: voiceError } = useVoiceSearch();
+
+    React.useEffect(() => {
+        if (transcript) {
+            setSearchQuery(transcript);
+            navigate(`/products?search=${encodeURIComponent(transcript)}`);
+        }
+    }, [transcript, navigate]);
+
+    React.useEffect(() => {
+        if (voiceError) {
+            alert(voiceError); // Simple alert for now, can be a toast
+        }
+    }, [voiceError]);
 
     const unreadCount = (notifications || []).filter((n) => n && !n.read).length;
     const cartCount = cart?.items?.length || 0;
@@ -27,6 +43,7 @@ const Navbar = () => {
 
     const authLinks = [
         { name: `Cart (${cartCount})`, path: '/cart', badge: cartCount > 0 },
+        { name: 'Rewards', path: '/rewards' },
         { name: 'Wishlist', path: '/wishlist' },
         { name: 'Orders', path: '/orders' },
     ];
@@ -59,14 +76,25 @@ const Navbar = () => {
                         </div>
                         <input
                             type="text"
-                            placeholder="I'm shopping for..."
-                            className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-full leading-5 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 sm:text-sm transition-all shadow-sm hover:shadow-md"
+                            placeholder={isListening ? "Listening..." : "I'm shopping for..."}
+                            className={`block w-full pl-10 pr-10 py-2 border rounded-full leading-5 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-1 sm:text-sm transition-all shadow-sm hover:shadow-md ${isListening ? 'border-primary-500 ring-primary-500' : 'border-gray-200 focus:border-primary-500 focus:ring-primary-500'}`}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     navigate(`/products?search=${encodeURIComponent(e.target.value)}`);
                                 }
                             }}
                         />
+                        <button
+                            className={`absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer ${isListening ? 'text-red-500 animate-pulse' : 'text-gray-400 hover:text-primary-500'}`}
+                            onClick={startListening}
+                            title="Voice Search"
+                        >
+                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                            </svg>
+                        </button>
                     </div>
 
                     {/* Mobile Menu Button */}
