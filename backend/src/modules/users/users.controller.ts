@@ -112,4 +112,9 @@ export class UsersController {
     const { secure_url } = await this.filesService.uploadFile(file);
     return this.usersService.update(id, { avatar: secure_url } as UpdateUserDto);
   }
+  @Delete(':id')
+  @Roles('admin')
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(id);
+  }
 }
