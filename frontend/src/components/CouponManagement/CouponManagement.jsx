@@ -60,8 +60,13 @@ const CouponManagement = () => {
             resetForm();
             fetchCoupons();
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to save coupon');
-            console.error(error);
+            const errorMessage = error.response?.data?.message;
+            if (Array.isArray(errorMessage)) {
+                errorMessage.forEach(msg => toast.error(msg));
+            } else {
+                toast.error(errorMessage || 'Failed to save coupon');
+            }
+            console.error('Coupon save error:', error);
         }
     };
 

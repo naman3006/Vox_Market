@@ -18,7 +18,7 @@ const OrderDetails = () => {
             try {
                 const { data } = await api.get(`/orders/${id}`);
                 console.log('Fetched Order Data:', data);
-                setOrder(data);
+                setOrder(data.data);
             } catch (err) {
                 toast.error('Failed to load order details');
                 console.error(err);
