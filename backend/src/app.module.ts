@@ -22,6 +22,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { QuestionsModule } from './modules/questions/questions.module';
 
 
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
@@ -69,6 +70,7 @@ import * as path from 'path';
     FilesModule,
     RecommendationsModule,
     ChatbotModule,
+    QuestionsModule,
   ],
   controllers: [],
   providers: [],

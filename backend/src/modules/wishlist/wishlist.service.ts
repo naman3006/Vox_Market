@@ -13,7 +13,7 @@ export class WishlistService {
 
   async findAll(userId: string): Promise<WishlistDocument[]> {
     return this.wishlistModel.find({ userId: new Types.ObjectId(userId) })
-      .populate('productIds')
+      .populate('items.productId')
       .exec();
   }
 
@@ -27,13 +27,13 @@ export class WishlistService {
   }
 
   async findOne(id: string, userId: string): Promise<WishlistDocument> {
-    const wishlist = await this.wishlistModel.findOne({ _id: id, userId: new Types.ObjectId(userId) }).populate('productIds').exec();
+    const wishlist = await this.wishlistModel.findOne({ _id: id, userId: new Types.ObjectId(userId) }).populate('items.productId').exec();
     if (!wishlist) throw new NotFoundException('Wishlist not found');
     return wishlist;
   }
 
   async findByToken(token: string): Promise<WishlistDocument> {
-    const wishlist = await this.wishlistModel.findOne({ shareToken: token, privacy: 'public' }).populate('productIds').exec();
+    const wishlist = await this.wishlistModel.findOne({ shareToken: token, privacy: 'public' }).populate('items.productId').exec();
     if (!wishlist) throw new NotFoundException('Wishlist not found or is private');
     return wishlist;
   }
@@ -67,11 +67,18 @@ export class WishlistService {
       .findOneAndUpdate(
         { _id: targetId, userId: new Types.ObjectId(userId) },
         {
-          $addToSet: { productIds: new Types.ObjectId(productId) },
+          $addToSet: {
+            items: {
+              productId: new Types.ObjectId(productId),
+              isBought: false,
+              boughtBy: null,
+              addedAt: new Date()
+            }
+          },
         },
         { new: true }
       )
-      .populate('productIds')
+      .populate('items.productId')
       .exec();
 
     if (!updatedWishlist) {
@@ -79,7 +86,7 @@ export class WishlistService {
       throw new NotFoundException('Wishlist not found');
     }
 
-    console.log(`[WishlistService.add] Success. Product count: ${updatedWishlist.productIds.length}`);
+    console.log(`[WishlistService.add] Success. Product count: ${updatedWishlist.items.length}`);
     return updatedWishlist;
   }
 
@@ -90,10 +97,10 @@ export class WishlistService {
     const updatedWishlist = await this.wishlistModel
       .findOneAndUpdate(
         filter,
-        { $pull: { productIds: new Types.ObjectId(productId) } },
+        { $pull: { items: { productId: new Types.ObjectId(productId) } } },
         { new: true }
       )
-      .populate('productIds')
+      .populate('items.productId')
       .exec();
 
     if (!updatedWishlist) {
@@ -117,5 +124,21 @@ export class WishlistService {
     ).exec();
     if (!wishlist) throw new NotFoundException('Wishlist not found');
     return wishlist;
+  }
+
+  async toggleBoughtStatus(shareToken: string, productId: string, boughtBy: string): Promise<WishlistDocument> {
+    const wishlist = await this.wishlistModel.findOne({ shareToken, privacy: 'public' }).exec();
+    if (!wishlist) throw new NotFoundException('Wishlist not found or not public');
+
+    const itemIndex = wishlist.items.findIndex(item => item.productId.toString() === productId);
+    if (itemIndex === -1) throw new NotFoundException('Product not found in wishlist');
+
+    // Toggle
+    const currentStatus = wishlist.items[itemIndex].isBought;
+    wishlist.items[itemIndex].isBought = !currentStatus;
+    wishlist.items[itemIndex].boughtBy = !currentStatus ? boughtBy : null;
+
+    await wishlist.save();
+    return this.wishlistModel.findById(wishlist._id).populate('items.productId').exec();
   }
 }

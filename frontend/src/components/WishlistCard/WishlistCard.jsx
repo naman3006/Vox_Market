@@ -35,7 +35,18 @@ const WishlistCard = ({ product, onAddToCart, onRemove }) => {
                         onError={(e) => { e.target.src = '/placeholder.jpg'; }}
                     />
                 </Link>
-                {isOutOfStock && (
+                {/* Bought Overlay */}
+                {(product.isBought) && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex flex-col items-center justify-center text-white z-10 p-4 text-center">
+                        <div className="bg-green-500 rounded-full p-2 mb-2 shadow-lg">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <span className="font-bold text-lg">Bought</span>
+                        {product.boughtBy && <span className="text-xs opacity-90 mt-1">by {product.boughtBy}</span>}
+                    </div>
+                )}
+
+                {isOutOfStock && !product.isBought && (
                     <div className="absolute top-3 left-3 bg-red-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
                         Out of Stock
                     </div>

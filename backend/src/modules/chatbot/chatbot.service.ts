@@ -181,8 +181,8 @@ export class ChatbotService {
             if (lowerMsg.includes('wishlist') || lowerMsg.includes('save')) {
                 const wishlists = await this.wishlistService.findAll(userId);
                 const w = wishlists[0];
-                context += (w && w.productIds.length)
-                    ? `\nWishlist '${w.name}': ${w.productIds.length} items.`
+                context += (w && w.items.length)
+                    ? `\nWishlist '${w.name}': ${w.items.length} items.`
                     : `\nWishlist is empty.`;
             }
 

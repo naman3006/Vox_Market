@@ -36,7 +36,7 @@ export const createWishlist = createAsyncThunk(
   async (name, { rejectWithValue }) => {
     try {
       const response = await api.post('/wishlist', { name });
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -77,10 +77,14 @@ const wishlistSlice = createSlice({
         // Flatten all product IDs for easy "isFavorite" check
         const allIds = new Set();
         data.forEach(list => {
-          list.productIds?.forEach(p => allIds.add(typeof p === 'string' ? p : p._id));
+          // Support both new 'items' and legacy 'productIds'
+          if (list.items) {
+            list.items.forEach(item => allIds.add(item.productId._id || item.productId));
+          } else if (list.productIds) {
+            list.productIds.forEach(p => allIds.add(typeof p === 'string' ? p : p._id));
+          }
         });
         state.items = Array.from(allIds);
-        // Keep legacy compatibility just in case
         state.wishlist = data[0] || null;
       })
       .addCase(addToWishlist.fulfilled, (state, action) => {
@@ -93,10 +97,17 @@ const wishlistSlice = createSlice({
           state.wishlists.push(updatedList);
         }
         // Update items list
-        updatedList.productIds?.forEach(p => {
-          const id = typeof p === 'string' ? p : p._id;
-          if (!state.items.includes(id)) state.items.push(id);
-        });
+        if (updatedList.items) {
+          updatedList.items.forEach(item => {
+            const id = item.productId._id || item.productId;
+            if (!state.items.includes(id)) state.items.push(id);
+          });
+        } else if (updatedList.productIds) {
+          updatedList.productIds.forEach(p => {
+            const id = typeof p === 'string' ? p : p._id;
+            if (!state.items.includes(id)) state.items.push(id);
+          });
+        }
         state.wishlist = updatedList;
       })
       .addCase(createWishlist.fulfilled, (state, action) => {
@@ -111,7 +122,11 @@ const wishlistSlice = createSlice({
         // Re-calculate items (expensive but safe)
         const allIds = new Set();
         state.wishlists.forEach(list => {
-          list.productIds?.forEach(p => allIds.add(typeof p === 'string' ? p : p._id));
+          if (list.items) {
+            list.items.forEach(item => allIds.add(item.productId._id || item.productId));
+          } else if (list.productIds) {
+            list.productIds.forEach(p => allIds.add(typeof p === 'string' ? p : p._id));
+          }
         });
         state.items = Array.from(allIds);
         state.wishlist = updatedList;

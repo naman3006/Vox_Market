@@ -35,6 +35,11 @@ export class WishlistController {
     return this.wishlistService.findByToken(token);
   }
 
+  @Post('shared/toggle-bought')
+  toggleBought(@Body() body: { shareToken: string; productId: string; boughtBy: string }) {
+    return this.wishlistService.toggleBoughtStatus(body.shareToken, body.productId, body.boughtBy);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string, @CurrentUser() user: User) {

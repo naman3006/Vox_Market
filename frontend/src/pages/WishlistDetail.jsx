@@ -121,7 +121,7 @@ const WishlistDetail = () => {
                             </h1>
                             <div className="flex items-center gap-4 text-sm text-gray-500">
                                 <span className="flex items-center bg-gray-100 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
-                                    {wishlist.productIds?.length || 0} ITEMS
+                                    {wishlist.items?.length || 0} ITEMS
                                 </span>
                                 <span className="flex items-center gap-1.5">
                                     {wishlist.privacy === 'private' ? (
@@ -175,18 +175,18 @@ const WishlistDetail = () => {
 
             {/* Content Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {wishlist.productIds?.map(product => (
+                {wishlist.items?.map(item => (
                     <WishlistCard
-                        key={product._id}
-                        product={product}
-                        onRemove={() => handleRemove(product._id)}
-                        onAddToCart={() => handleAddToCart(product._id)}
+                        key={item.productId._id}
+                        product={{ ...item.productId, isBought: item.isBought, boughtBy: item.boughtBy }}
+                        onRemove={() => handleRemove(item.productId._id)}
+                        onAddToCart={() => handleAddToCart(item.productId._id)}
                     />
                 ))}
             </div>
 
             {/* Empty State */}
-            {(!wishlist.productIds || wishlist.productIds.length === 0) && (
+            {(!wishlist.items || wishlist.items.length === 0) && (
                 <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
                     <div className="p-4 bg-blue-50 rounded-full mb-4">
                         <ShoppingBag fontSize="large" className="text-blue-500" />

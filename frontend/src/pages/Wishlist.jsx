@@ -106,7 +106,7 @@ const Wishlist = () => {
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${list.privacy === 'public' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
                   {list.privacy === 'public' ? '🌎' : '🔒'}
                 </div>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{list.productIds?.length || 0} ITEMS</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{list.items?.length || list.productIds?.length || 0} ITEMS</span>
               </div>
               <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{list.name}</h3>
               <p className="text-gray-500 text-sm mt-2">

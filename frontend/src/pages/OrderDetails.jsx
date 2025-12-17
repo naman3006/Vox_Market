@@ -5,12 +5,14 @@ import api from "../store/api/api";
 import OrderTimeline from '../components/Order/OrderTimeline';
 import { toast } from 'react-toastify';
 import { useSocket } from '../contexts/SocketContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const OrderDetails = () => {
     const { id } = useParams();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isCancelling, setIsCancelling] = useState(false);
+    const [showCancelModal, setShowCancelModal] = useState(false);
     const socket = useSocket();
 
     useEffect(() => {
@@ -35,6 +37,10 @@ const OrderDetails = () => {
                 if (payload.orderId === id) {
                     setOrder(payload.order);
                     toast.success(`Order status updated to ${payload.status || payload.newStatus || payload.order.orderStatus}`);
+                    // Close modal if it was open (e.g. if cancelled by another device/admin)
+                    if (payload.order.orderStatus === 'cancelled') {
+                        setShowCancelModal(false);
+                    }
                 }
             };
 
@@ -49,6 +55,20 @@ const OrderDetails = () => {
         }
     }, [socket, id]);
 
+    const handleCancelOrder = async () => {
+        setIsCancelling(true);
+        try {
+            const { data } = await api.patch(`/orders/${id}/cancel`);
+            setOrder(data);
+            toast.success('Order cancelled successfully');
+            setShowCancelModal(false);
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Failed to cancel order');
+        } finally {
+            setIsCancelling(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -101,13 +121,26 @@ const OrderDetails = () => {
                             Placed on {new Date(order.createdAt).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         </p>
                     </div>
-                    <div>
+                    <div className="flex items-center gap-3">
                         <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold border shadow-sm
                             ${(order.orderStatus || 'pending') === 'delivered' ? 'bg-green-50 text-green-700 border-green-100' :
                                 (order.orderStatus || 'pending') === 'cancelled' ? 'bg-red-50 text-red-700 border-red-100' :
                                     'bg-indigo-50 text-indigo-700 border-indigo-100'}`}>
                             {((order.orderStatus || 'pending').charAt(0).toUpperCase() + (order.orderStatus || 'pending').slice(1))}
                         </span>
+
+                        {/* Cancel Button - Only show for pending orders */}
+                        {order.orderStatus === 'pending' && (
+                            <button
+                                onClick={() => setShowCancelModal(true)}
+                                className="inline-flex items-center px-4 py-2 border border-red-200 text-sm font-medium rounded-full text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                            >
+                                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Cancel Order
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -274,6 +307,49 @@ const OrderDetails = () => {
                     </div>
                 </div>
             </motion.div>
+
+            {/* Cancel Confirmation Modal */}
+            <AnimatePresence>
+                {showCancelModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 20 }}
+                            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 text-center"
+                        >
+                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Cancel Order</h3>
+                            <p className="text-gray-500 mb-6">Are you sure you want to cancel this order? This action cannot be undone.</p>
+
+                            <div className="flex gap-3 justify-center">
+                                <button
+                                    onClick={() => setShowCancelModal(false)}
+                                    className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+                                >
+                                    No, Keep Order
+                                </button>
+                                <button
+                                    onClick={handleCancelOrder}
+                                    disabled={isCancelling}
+                                    className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 shadow-lg shadow-red-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isCancelling ? 'Cancelling...' : 'Yes, Cancel Order'}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

@@ -9,6 +9,6 @@ export class AdminService {
   constructor(private readonly analyticsService: AnalyticsService) { }
 
   async getDashboard() {
-    return this.analyticsService.getDashboardStats();
+    return this.analyticsService.getDashboardStats()
   }
 }

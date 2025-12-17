@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import ReviewCard from '../components/ReviewCard/ReviewCard';
 import ProductCard from '../components/ProductCard/ProductCard';
+import QnASection from '../components/product/QnASection';
 import { findOneProduct, findProductRecommendations, selectRecommendations } from '../store/slices/productsSlice';
 import { createReview, findReviewsByProduct } from '../store/slices/reviewsSlice';
 import { addToWishlist, removeFromWishlist, createWishlist } from '../store/slices/wishlistSlice';
@@ -227,7 +228,12 @@ const ProductDetail = () => {
       )}
 
       <div className="p-8 border-t border-gray-200">
+        <QnASection productId={id} />
+      </div>
+
+      <div className="p-8 border-t border-gray-200">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Reviews</h2>
+
         <form onSubmit={handleSubmitReview} className="mb-8 p-4 bg-gray-50 rounded-lg">
           <div className="flex items-center space-x-2 mb-4">
             <span className="text-sm font-medium">Rating:</span>
@@ -258,7 +264,7 @@ const ProductDetail = () => {
         </form>
         <div className="space-y-4">
           {reviews.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <ReviewCard key={review._id || review.id} review={review} />
           ))}
         </div>
       </div>
@@ -278,7 +284,12 @@ const ProductDetail = () => {
               {allWishlists.length === 0 && <p className="text-gray-500 text-center py-4">No wishlists yet.</p>}
 
               {allWishlists.map(list => {
-                const isAlreadyIn = list.productIds?.some(p => (typeof p === 'string' ? p : p._id) === product._id);
+                const isAlreadyIn = list.items
+                  ? list.items.some(item => (item.productId._id || item.productId) === product._id)
+                  : list.productIds?.some(p => (typeof p === 'string' ? p : p._id) === product._id);
+
+                const count = list.items ? list.items.length : (list.productIds?.length || 0);
+
                 return (
                   <div
                     key={list._id}
@@ -290,7 +301,7 @@ const ProductDetail = () => {
                     </div>
                     <div className="flex-1">
                       <p className={`font-medium ${isAlreadyIn ? 'text-indigo-900' : 'text-gray-700'}`}>{list.name}</p>
-                      <p className="text-xs text-gray-400">{list.productIds?.length || 0} items</p>
+                      <p className="text-xs text-gray-400">{count} items</p>
                     </div>
                   </div>
                 );
