@@ -74,7 +74,7 @@ export const voiceCommands = [
         action: () => {
             // In a real app, this could open a modal or show a toast
             // For now, the feedback will list options
-            return 'Try "Go to Cart", "Search for shoes", or "Switch Theme"';
+            return 'Try "open Cart", "Search for shoes", or "Switch Theme"';
         },
         feedback: 'Showing Help',
     },

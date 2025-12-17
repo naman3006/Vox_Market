@@ -43,7 +43,7 @@ const VoiceAssistantOverlay = ({ isOpen, isListening, transcript, interimTranscr
                         )}
                         {!(transcript || interimTranscript) && isListening && (
                             <p className="text-sm text-gray-500">
-                                Try saying "Go to Cart", "Search for shoes", or "Scroll down"
+                                Try saying "open Cart","Scroll down"
                             </p>
                         )}
                     </div>
