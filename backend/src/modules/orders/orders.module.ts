@@ -11,6 +11,7 @@ import { OrderEventsListener } from './order-events.listener';
 import { MailModule } from '../mail/mail.module';
 import { CouponsModule } from '../coupons/coupons.module';
 import { LoyaltyModule } from '../loyalty/loyalty.module';
+import { SocialProofModule } from '../social-proof/social-proof.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { LoyaltyModule } from '../loyalty/loyalty.module';
     MailModule,
     CouponsModule,
     LoyaltyModule,
+    SocialProofModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersListener, OrderEventsListener],

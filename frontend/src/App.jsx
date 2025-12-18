@@ -41,6 +41,7 @@ import { useSocket } from "./contexts/SocketContext";
 import { addNotification } from "./store/slices/notificationsSlice";
 import { toast, ToastContainer } from "react-toastify";
 import VoiceOverlay from "./components/VoiceAssistant/VoiceOverlay";
+import ActivityToast from "./components/common/ActivityToast";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -256,6 +257,7 @@ const App = () => {
       </Routes>
       <VoiceOverlay />
       <ToastContainer />
+      <ActivityToast />
     </div >
   );
 };

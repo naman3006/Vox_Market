@@ -24,6 +24,7 @@ import { NotificationGateway } from '../notifications/notification.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CouponsService } from '../coupons/coupons.service';
 import { LoyaltyService } from '../loyalty/loyalty.service';
+import { SocialProofGateway } from '../social-proof/social-proof.gateway';
 
 @Injectable()
 export class OrdersService {
@@ -38,6 +39,7 @@ export class OrdersService {
     private eventEmitter: EventEmitter2,
     private couponsService: CouponsService,
     private loyaltyService: LoyaltyService,
+    private socialProofGateway: SocialProofGateway,
     @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
   ) { }
 
@@ -136,6 +138,28 @@ export class OrdersService {
       }
 
       // 4. Real-time update to Admins
+
+
+      // 5. Broadcast to Social Proof (Activity Feed)
+      // We want to send limited info: "Someone in [City] bought [Product]"
+      // We take the first product title for simplicity or "X items"
+      const firstItemTitle = itemsWithIds[0]?.productId ? (itemsWithIds[0] as any).title : 'Product';
+      // Actually in create(), itemsWithIds has productId as ObjectId. 
+      // We fetched 'products' array above (line 116), let's use that.
+      const firstProduct = products.find(p => p._id.toString() === itemsWithIds[0].productId.toString());
+
+      // Update soldCount for products
+      for (const item of itemsWithIds) {
+        await this.productModel.findByIdAndUpdate(item.productId, { $inc: { soldCount: item.quantity } });
+      }
+
+      this.socialProofGateway.broadcastNewOrder({
+        city: createOrderDto.shippingAddress?.city || 'Unknown City',
+        country: createOrderDto.shippingAddress?.country || 'Unknown',
+        product: firstProduct?.title || 'an item',
+        timestamp: new Date(),
+      });
+
       this.notificationsService.sendToRole('admin', 'order.created', {
         orderId: savedOrder._id,
         order: savedOrder,

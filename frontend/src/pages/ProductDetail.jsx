@@ -12,6 +12,7 @@ import { addToWishlist, removeFromWishlist, createWishlist } from '../store/slic
 import { addToCart } from '../store/slices/cartSlice';
 import { toast } from 'react-toastify';
 import ARViewer from '../components/product/ARViewer';
+import SocialProofBadge from '../components/common/SocialProofBadge';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -153,6 +154,7 @@ const ProductDetail = () => {
           )}
         </div>
         <div className="space-y-6">
+          <SocialProofBadge productId={product._id} />
           <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
           <p className="text-gray-600 text-lg">{product.description}</p>
           <div className="text-2xl font-semibold text-gray-900">₹{product.price}</div>

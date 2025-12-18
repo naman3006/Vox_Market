@@ -61,6 +61,7 @@ export const clearCart = createAsyncThunk(
     }
   }
 );
+
 export const validateCoupon = createAsyncThunk(
   'cart/validateCoupon',
   async ({ code, cartTotal, categoryIds, productIds }, { rejectWithValue }) => {
