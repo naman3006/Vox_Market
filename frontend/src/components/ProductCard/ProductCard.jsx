@@ -2,6 +2,7 @@
 import React, { memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import OptimizedImage from '../common/OptimizedImage';
 
 const ProductCard = memo(({ product }) => {
   // Validate product data
@@ -39,18 +40,12 @@ const ProductCard = memo(({ product }) => {
         {/* Image Container */}
         <div className="relative w-full pt-[100%] overflow-hidden bg-gray-50">
           <div className="absolute inset-0 flex items-center justify-center">
-            <img
+            <OptimizedImage
               src={displayData.image}
               alt={displayData.name}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-              onError={(e) => {
-                // Prevent infinite loop if placeholder itself fails
-                if (e.target.src.includes('data:image/svg+xml')) return;
-
-                // Use a reliable SVG placeholder provided in ProductList code
-                e.target.src = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' style='background:%23f3f4f6'><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='Arial' font-size='14'>No image</text></svg>`;
-              }}
+              className="w-full h-full"
             />
+
           </div>
 
           {/* Overlay Gradient (Subtle) */}

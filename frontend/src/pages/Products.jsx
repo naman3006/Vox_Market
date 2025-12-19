@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from 'react-i18next';
 import {
@@ -14,6 +14,7 @@ import {
   selectAllCategories,
 } from "../store/slices/categoriesSlice";
 import ProductCard from "../components/ProductCard/ProductCard";
+import ProductCardSkeleton from "../components/common/Skeleton/ProductCardSkeleton";
 import { toast } from "react-toastify";
 import useVoiceSearch from "../hooks/useVoiceSearch";
 import { parseVoiceCommand } from "../utils/voiceUtils";

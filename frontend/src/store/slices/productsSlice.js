@@ -243,8 +243,20 @@ const productsSlice = createSlice({
       })
       .addCase(findAllProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.products = action.payload.products || [];
-        state.currentPage = action.payload.page || 1;
+        const newProducts = action.payload.products || [];
+        const page = action.payload.page || 1;
+
+        if (page > 1) {
+          // Append products for infinite scroll, avoiding duplicates
+          const existingIds = new Set(state.products.map(p => p._id));
+          const uniqueNewProducts = newProducts.filter(p => !existingIds.has(p._id));
+          state.products = [...state.products, ...uniqueNewProducts];
+        } else {
+          // Replace for new search/filter or page 1
+          state.products = newProducts;
+        }
+
+        state.currentPage = page;
         state.totalPages = action.payload.totalPages || 1;
         state.totalProducts = action.payload.total || 0;
       })
