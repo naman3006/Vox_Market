@@ -25,12 +25,17 @@ export class CartService {
     @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
-  ) { }
+  ) {}
 
   // ... (lines 28-215 omitted, no changes)
 
-  private async getProductPrice(productId: string): Promise<{ price: number } | null> {
-    const product = await this.productModel.findById(productId).select('price').exec();
+  private async getProductPrice(
+    productId: string,
+  ): Promise<{ price: number } | null> {
+    const product = await this.productModel
+      .findById(productId)
+      .select('price')
+      .exec();
     return product ? { price: product.price } : null;
   }
 
@@ -50,7 +55,9 @@ export class CartService {
         if (!cart.role) {
           cart.role = role || 'user';
           await cart.save();
-          this.logger.log(`Backfilled role for user: ${userId} to ${cart.role}`);
+          this.logger.log(
+            `Backfilled role for user: ${userId} to ${cart.role}`,
+          );
         }
       } else {
         cart = new this.cartModel({
@@ -64,7 +71,10 @@ export class CartService {
       }
       return cart;
     } catch (error) {
-      this.logger.error(`Error finding cart for user ${userId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error finding cart for user ${userId}: ${error.message}`,
+        error.stack,
+      );
       throw error; // Rethrow to let NestJS handle it, but now it's logged
     }
   }
@@ -158,15 +168,16 @@ export class CartService {
       this.logger.log(`Updated cart item: ${itemId} for user: ${userId}`);
       return cart;
     } catch (error) {
-      this.logger.error(
-        `Error updating cart: ${error.message}`,
-        error.stack,
-      );
+      this.logger.error(`Error updating cart: ${error.message}`, error.stack);
       throw new BadRequestException('Failed to update cart item');
     }
   }
 
-  async remove(userId: string, role: string, itemId: string): Promise<CartDocument> {
+  async remove(
+    userId: string,
+    role: string,
+    itemId: string,
+  ): Promise<CartDocument> {
     if (!Types.ObjectId.isValid(userId)) {
       throw new BadRequestException('Invalid user ID format');
     }
@@ -175,9 +186,7 @@ export class CartService {
       const cart = await this.findOne(userId, role);
       const initialLength = cart.items.length;
 
-      cart.items = cart.items.filter(
-        (item) => item._id?.toString() !== itemId,
-      );
+      cart.items = cart.items.filter((item) => item._id?.toString() !== itemId);
 
       if (cart.items.length === initialLength) {
         throw new NotFoundException('Item not found in cart');
@@ -233,10 +242,11 @@ export class CartService {
   }
 
   private calculateTotalPrice(items: CartItem[]): number {
-    return items.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0);
+    return items.reduce(
+      (sum, item) => sum + (item.price || 0) * item.quantity,
+      0,
+    );
   }
-
-
 
   private invalidateCartCache(userId: string): void {
     if (this.cacheManager) {

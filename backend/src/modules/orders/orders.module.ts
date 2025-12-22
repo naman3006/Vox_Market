@@ -30,4 +30,4 @@ import { SocialProofModule } from '../social-proof/social-proof.module';
   providers: [OrdersService, OrdersListener, OrderEventsListener],
   exports: [OrdersService],
 })
-export class OrdersModule { }
+export class OrdersModule {}

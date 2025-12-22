@@ -14,4 +14,4 @@ import { FilesModule } from '../files/files.module';
   providers: [UsersService],
   exports: [MongooseModule, UsersService],
 })
-export class UsersModule { }
+export class UsersModule {}

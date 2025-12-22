@@ -1,4 +1,4 @@
-// src/modules/products/products.controller.ts (Updated to handle raw FormData body)
+// src/modules/products/products.controller.ts (Updated to handle raw FormData body safely)
 import {
   Controller,
   Get,
@@ -55,11 +55,13 @@ const getProductImageStorage = () => {
 
 @Controller('products')
 export class ProductsController {
-  constructor(private productsService: ProductsService) { }
+  constructor(private productsService: ProductsService) {}
 
   @Public()
   @Get()
-  findAll(@Query() queryProductDto: QueryProductDto): Promise<ProductQueryResult> {
+  findAll(
+    @Query() queryProductDto: QueryProductDto,
+  ): Promise<ProductQueryResult> {
     return this.productsService.findAll(queryProductDto);
   }
 
@@ -77,21 +79,29 @@ export class ProductsController {
 
   @Public()
   @Get(':id/related')
-  getRelatedProducts(@Param('id') id: string, @Query('limit') limit?: number): Promise<Product[]> {
+  getRelatedProducts(
+    @Param('id') id: string,
+    @Query('limit') limit?: number,
+  ): Promise<Product[]> {
     return this.productsService.getRelatedProducts(id, limit);
   }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'seller')
-  @UseInterceptors(FilesInterceptor('images', 10, { storage: getProductImageStorage() }))
+  @UseInterceptors(
+    FilesInterceptor('images', 10, { storage: getProductImageStorage() }),
+  )
   async create(
-    @Body() rawBody: any, // Raw multipart body (flat object from FormData)
+    @Body() rawBody: Record<string, string | string[] | undefined>, // Raw multipart body (flat object from FormData)
     @UploadedFiles(
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB per file
-          new FileTypeValidator({ fileType: /^image\/(jpeg|png|gif|webp)$/, skipMagicNumbersValidation: true }),
+          new FileTypeValidator({
+            fileType: /^image\/(jpeg|png|gif|webp)$/,
+            skipMagicNumbersValidation: true,
+          }),
         ],
         fileIsRequired: false,
       }),
@@ -101,21 +111,30 @@ export class ProductsController {
   ) {
     // Transform raw flat body to DTO structure
     const createDto = this.transformRawBodyToDto(rawBody, CreateProductDto);
-    return this.productsService.processAndCreateProduct(createDto, files, user.id);
+    return this.productsService.processAndCreateProduct(
+      createDto,
+      files,
+      user.id,
+    );
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'seller')
-  @UseInterceptors(FilesInterceptor('images', 10, { storage: getProductImageStorage() }))
+  @UseInterceptors(
+    FilesInterceptor('images', 10, { storage: getProductImageStorage() }),
+  )
   async update(
     @Param('id') id: string,
-    @Body() rawBody: any, // Raw multipart body
+    @Body() rawBody: Record<string, string | string[] | undefined>, // Raw multipart body
     @UploadedFiles(
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: /^image\/(jpeg|png|gif|webp)$/, skipMagicNumbersValidation: true }),
+          new FileTypeValidator({
+            fileType: /^image\/(jpeg|png|gif|webp)$/,
+            skipMagicNumbersValidation: true,
+          }),
         ],
         fileIsRequired: false,
       }),
@@ -135,89 +154,126 @@ export class ProductsController {
   }
 
   // Helper method to transform flat FormData keys to nested DTO
-  private transformRawBodyToDto(rawBody: any, DtoClass: any): any {
+  /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
+  private transformRawBodyToDto<T extends Partial<CreateProductDto>>(
+    rawBody: Record<string, string | string[] | undefined>,
+    DtoClass: new () => T,
+  ): T {
     const dto = new DtoClass();
 
-    // Simple fields
-    const simpleFields = [
-      'title', 'description', 'longDescription', 'brand', 'sku', 'tags',
-      'isFeatured', 'isActive', 'stockStatus', 'thumbnail'
-    ];
-    simpleFields.forEach(field => {
-      if (rawBody[field] !== undefined) {
-        dto[field] = rawBody[field];
-      }
-    });
+    const getString = (val: string | string[] | undefined): string => {
+      if (!val) return '';
+      if (Array.isArray(val)) return val[0] || '';
+      return val;
+    };
 
-    // Handle images explicitly (can be one string or array of strings)
+    // Use type assertion to avoid strict partial checks during assignment
+    const d = dto as any;
+
+    // Simple fields
+    if (rawBody.title) d.title = getString(rawBody.title);
+    if (rawBody.description) d.description = getString(rawBody.description);
+    if (rawBody.longDescription)
+      d.longDescription = getString(rawBody.longDescription);
+    if (rawBody.brand) d.brand = getString(rawBody.brand);
+    if (rawBody.sku) d.sku = getString(rawBody.sku);
+    if (rawBody.thumbnail) d.thumbnail = getString(rawBody.thumbnail);
+    if (rawBody.stockStatus) d.stockStatus = getString(rawBody.stockStatus);
+
+    // Boolean handling
+    if (rawBody.isFeatured !== undefined) {
+      const val = getString(rawBody.isFeatured);
+      d.isFeatured = val === 'true';
+    }
+    if (rawBody.isActive !== undefined) {
+      const val = getString(rawBody.isActive);
+      d.isActive = val === 'true';
+    }
+
+    // Handle images explicitly
     if (rawBody.images) {
       if (Array.isArray(rawBody.images)) {
-        dto.images = rawBody.images;
-      } else {
-        dto.images = [rawBody.images];
+        d.images = rawBody.images;
+      } else if (rawBody.images) {
+        d.images = [rawBody.images];
       }
     }
 
     // Numbers
-    ['price', 'discountPrice', 'stock', 'weight'].forEach(field => {
+    [
+      'price',
+      'discountPrice',
+      'stock',
+      'weight',
+      'rating',
+      'soldCount',
+    ].forEach((field) => {
       if (rawBody[field] !== undefined) {
-        dto[field] = parseFloat(rawBody[field]) || parseInt(rawBody[field], 10) || 0;
+        const val = getString(rawBody[field]);
+        d[field] = parseFloat(val) || parseInt(val, 10) || 0;
       }
     });
 
-    // Boolean
-    ['isFeatured', 'isActive'].forEach(field => {
-      if (rawBody[field] !== undefined) {
-        dto[field] = rawBody[field] === 'true' || rawBody[field] === true;
-      }
-    });
+    // categoryId
+    d.categoryId = getString(rawBody.categoryId);
 
-    // categoryId - always assign, even if empty for validation
-    dto.categoryId = typeof rawBody.categoryId === 'object'
-      ? (rawBody.categoryId?._id || rawBody.categoryId?.toString() || '')
-      : (rawBody.categoryId || '');
-
-    // Tags - split if string
-    if (typeof dto.tags === 'string') {
-      dto.tags = dto.tags.split(',').map(t => t.trim()).filter(Boolean);
+    // Tags
+    const tagsVal = getString(rawBody.tags);
+    if (tagsVal) {
+      d.tags = tagsVal
+        .split(',')
+        .map((t: string) => t.trim())
+        .filter(Boolean);
     }
 
-    // Variants - build array
-    dto.variants = [];
+    // Variants - flattened keys
+    d.variants = [];
     let variantIndex = 0;
-    while (rawBody[`variants[${variantIndex}].name`]) {
-      const name = rawBody[`variants[${variantIndex}].name`];
+    while (variantIndex < 50) {
+      const nameKey = `variants[${variantIndex}].name`;
+      if (rawBody[nameKey] === undefined) break;
+
+      const name = getString(rawBody[nameKey]);
       const options: string[] = [];
       let optIndex = 0;
-      while (rawBody[`variants[${variantIndex}].options[${optIndex}`]) {
-        options.push(rawBody[`variants[${variantIndex}].options[${optIndex}`]);
+      while (optIndex < 50) {
+        const optKey = `variants[${variantIndex}].options[${optIndex}]`;
+        if (rawBody[optKey] === undefined) break;
+        options.push(getString(rawBody[optKey]));
         optIndex++;
       }
+
       if (name && options.length > 0) {
-        dto.variants.push({ name, options });
+        d.variants.push({ name, options });
       }
       variantIndex++;
     }
 
-    // Specifications - similar
-    dto.specifications = [];
+    // Specifications
+    d.specifications = [];
     let specIndex = 0;
-    while (rawBody[`specifications[${specIndex}].key`]) {
-      const key = rawBody[`specifications[${specIndex}].key`];
-      const value = rawBody[`specifications[${specIndex}].value`];
+    while (specIndex < 50) {
+      const keyKey = `specifications[${specIndex}].key`;
+      if (rawBody[keyKey] === undefined) break;
+
+      const key = getString(rawBody[keyKey]);
+      const valKey = `specifications[${specIndex}].value`;
+      const value = getString(rawBody[valKey]);
+
       if (key && value) {
-        dto.specifications.push({ key, value });
+        d.specifications.push({ key, value });
       }
       specIndex++;
     }
 
     // SEO
-    dto.seo = {
-      metaTitle: rawBody['seo[metaTitle]'] || '',
-      metaDescription: rawBody['seo[metaDescription]'] || '',
-      keywords: typeof rawBody['seo[keywords]'] === 'string'
-        ? rawBody['seo[keywords]'].split(',').map(k => k.trim()).filter(Boolean)
-        : [],
+    d.seo = {
+      metaTitle: getString(rawBody['seo[metaTitle]']),
+      metaDescription: getString(rawBody['seo[metaDescription]']),
+      keywords: getString(rawBody['seo[keywords]'])
+        .split(',')
+        .map((k: string) => k.trim())
+        .filter(Boolean),
     };
 
     return dto;

@@ -19,6 +19,7 @@
     "@mui/x-data-grid": "^8.21.0",
     "@reduxjs/toolkit": "^2.11.1",
     "axios": "^1.13.2",
+    "canvas-confetti": "^1.9.4",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.26",
     "i18next": "^25.7.3",

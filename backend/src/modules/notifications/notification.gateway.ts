@@ -14,7 +14,8 @@ import { JwtService } from '@nestjs/jwt';
   },
 })
 export class NotificationGateway
-  implements OnGatewayConnection, OnGatewayDisconnect {
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -24,7 +25,7 @@ export class NotificationGateway
     try {
       const token =
         client.handshake.auth?.token ||
-        (client.handshake.headers.authorization as string)?.split(' ')[1];
+        client.handshake.headers.authorization?.split(' ')[1];
 
       if (token) {
         const payload = this.jwtService.verify(token);
@@ -35,7 +36,9 @@ export class NotificationGateway
         if (role) {
           client.join(`role:${role}`);
         }
-        console.log(`Client ${client.id} (User: ${userId}, Role: ${role}) connected`);
+        console.log(
+          `Client ${client.id} (User: ${userId}, Role: ${role}) connected`,
+        );
       } else {
         // Allow unauthenticated connection but limited
         console.log(`Client ${client.id} connected (Guest)`);

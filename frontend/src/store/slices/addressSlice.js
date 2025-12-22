@@ -1,4 +1,3 @@
-// src/store/slices/addressSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../api/api";
 

@@ -63,10 +63,13 @@ export class LoggerService extends Logger {
     // });
   }
 
-  logApiCall(method: string, url: string, status: number, duration: number): void {
+  logApiCall(
+    method: string,
+    url: string,
+    status: number,
+    duration: number,
+  ): void {
     const logLevel = status >= 500 ? 'error' : status >= 400 ? 'warn' : 'log';
-    this[logLevel](
-      `[${method}] ${url} - ${status} - ${duration}ms`,
-    );
+    this[logLevel](`[${method}] ${url} - ${status} - ${duration}ms`);
   }
 }

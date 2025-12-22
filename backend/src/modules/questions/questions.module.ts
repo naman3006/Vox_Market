@@ -5,11 +5,13 @@ import { QuestionsController } from './questions.controller';
 import { Question, QuestionSchema } from './schemas/question.schema';
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([{ name: Question.name, schema: QuestionSchema }]),
-    ],
-    controllers: [QuestionsController],
-    providers: [QuestionsService],
-    exports: [QuestionsService],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Question.name, schema: QuestionSchema },
+    ]),
+  ],
+  controllers: [QuestionsController],
+  providers: [QuestionsService],
+  exports: [QuestionsService],
 })
-export class QuestionsModule { }
+export class QuestionsModule {}

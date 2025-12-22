@@ -1,4 +1,3 @@
-// src/store/store.js
 import { configureStore } from '@reduxjs/toolkit';
 import authSlice from './slices/authSlice';
 import addressSlice from './slices/addressSlice';
@@ -12,6 +11,7 @@ import productsSlice from './slices/productsSlice';
 import reviewsSlice from './slices/reviewsSlice';
 import usersSlice from './slices/usersSlice';
 import wishlistSlice from './slices/wishlistSlice';
+import gamificationSlice from './slices/gamificationSlice';
 
 
 export const store = configureStore({
@@ -28,5 +28,6 @@ export const store = configureStore({
     reviews: reviewsSlice,
     users: usersSlice,
     wishlist: wishlistSlice,
+    gamification: gamificationSlice,
   },
 });

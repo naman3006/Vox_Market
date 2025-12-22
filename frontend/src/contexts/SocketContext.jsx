@@ -12,8 +12,10 @@ export const SocketProvider = ({ children }) => {
 
     useEffect(() => {
         if (token && user) {
-            const newSocket = io('http://localhost:3000', {
-                auth: { token }, // Pass token for authentication
+            const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            const newSocket = io(SOCKET_URL, {
+                auth: { token },
+                transports: ['websocket'],
             });
 
             newSocket.on('connect', () => {
@@ -24,6 +26,10 @@ export const SocketProvider = ({ children }) => {
 
             newSocket.on('disconnect', () => {
                 console.log('Socket disconnected');
+            });
+
+            newSocket.on('connect_error', (err) => {
+                console.error('Socket connect error:', err);
             });
 
             setSocket(newSocket);

@@ -41,7 +41,7 @@ export class OrdersService {
     private loyaltyService: LoyaltyService,
     private socialProofGateway: SocialProofGateway,
     @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
-  ) { }
+  ) {}
 
   async create(
     createOrderDto: CreateOrderDto,
@@ -74,11 +74,16 @@ export class OrdersService {
       if (createOrderDto.appliedCoupon) {
         try {
           if (Types.ObjectId.isValid(createOrderDto.appliedCoupon)) {
-            await this.couponsService.applyCoupon(createOrderDto.appliedCoupon, userId);
+            await this.couponsService.applyCoupon(
+              createOrderDto.appliedCoupon,
+              userId,
+            );
             appliedCouponId = new Types.ObjectId(createOrderDto.appliedCoupon);
           }
         } catch (error) {
-          this.logger.warn(`Failed to apply coupon ${createOrderDto.appliedCoupon}: ${error.message}`);
+          this.logger.warn(
+            `Failed to apply coupon ${createOrderDto.appliedCoupon}: ${error.message}`,
+          );
           // Decide if we should block order creation or just proceed without coupon.
           // Usually if user expects discount, failing is safer?
           // But front-end already validated. If applyCoupon fails (e.g. limit reached in split second),
@@ -110,47 +115,60 @@ export class OrdersService {
       await this.notificationsService.create(
         userId,
         `Order #${savedOrder._id} created successfully`,
-        'order'
+        'order',
       );
 
       // 2. Notify Sellers
-      const productIds = itemsWithIds.map(i => i.productId);
-      const products = await this.productModel.find({ _id: { $in: productIds } }).select('sellerId title').lean();
+      const productIds = itemsWithIds.map((i) => i.productId);
+      const products = await this.productModel
+        .find({ _id: { $in: productIds } })
+        .select('sellerId title')
+        .lean();
 
-      const sellerIds = new Set(products.map(p => p.sellerId?.toString()).filter(Boolean));
+      const sellerIds = new Set(
+        products.map((p) => p.sellerId?.toString()).filter(Boolean),
+      );
 
       for (const sellerId of sellerIds) {
         await this.notificationsService.create(
           sellerId,
           `New order received! Order #${savedOrder._id} contains your products.`,
-          'order'
+          'order',
         );
       }
 
       // 3. Notify Admins
-      const admins = await this.userModel.find({ role: 'admin' }).select('_id').lean();
+      const admins = await this.userModel
+        .find({ role: 'admin' })
+        .select('_id')
+        .lean();
       for (const admin of admins) {
         await this.notificationsService.create(
           admin._id.toString(),
           `New order #${savedOrder._id} placed by user.`,
-          'order'
+          'order',
         );
       }
 
       // 4. Real-time update to Admins
 
-
       // 5. Broadcast to Social Proof (Activity Feed)
       // We want to send limited info: "Someone in [City] bought [Product]"
       // We take the first product title for simplicity or "X items"
-      const firstItemTitle = itemsWithIds[0]?.productId ? (itemsWithIds[0] as any).title : 'Product';
-      // Actually in create(), itemsWithIds has productId as ObjectId. 
+      const firstItemTitle = itemsWithIds[0]?.productId
+        ? (itemsWithIds[0] as any).title
+        : 'Product';
+      // Actually in create(), itemsWithIds has productId as ObjectId.
       // We fetched 'products' array above (line 116), let's use that.
-      const firstProduct = products.find(p => p._id.toString() === itemsWithIds[0].productId.toString());
+      const firstProduct = products.find(
+        (p) => p._id.toString() === itemsWithIds[0].productId.toString(),
+      );
 
       // Update soldCount for products
       for (const item of itemsWithIds) {
-        await this.productModel.findByIdAndUpdate(item.productId, { $inc: { soldCount: item.quantity } });
+        await this.productModel.findByIdAndUpdate(item.productId, {
+          $inc: { soldCount: item.quantity },
+        });
       }
 
       this.socialProofGateway.broadcastNewOrder({
@@ -369,7 +387,7 @@ export class OrdersService {
         await this.notificationsService.create(
           updated.userId.toString(),
           `Your Order #${updated._id} has been accepted by seller`,
-          'order'
+          'order',
         );
       }
 
@@ -471,32 +489,47 @@ export class OrdersService {
         await this.notificationsService.create(
           userId,
           `Order #${orderId} has been cancelled successfully`,
-          'order'
+          'order',
         );
       } catch (err) {
-        this.logger.warn(`Failed to notify user about order cancellation: ${err.message}`);
+        this.logger.warn(
+          `Failed to notify user about order cancellation: ${err.message}`,
+        );
       }
 
       // Notify Sellers? (Optional, but good practice if they were notified of creation)
       // Re-using logic to find sellers
       try {
-        const sellerIds = new Set((updatedOrder.items || []).map((it: any) => it.productId?.sellerId?.toString()).filter(Boolean));
+        const sellerIds = new Set(
+          (updatedOrder.items || [])
+            .map((it: any) => it.productId?.sellerId?.toString())
+            .filter(Boolean),
+        );
         for (const sellerId of sellerIds) {
           await this.notificationsService.create(
             sellerId,
             `Order #${orderId} has been cancelled by the buyer.`,
-            'order'
+            'order',
           );
         }
       } catch (err) {
-        this.logger.warn(`Failed to notify sellers about order cancellation: ${err.message}`);
+        this.logger.warn(
+          `Failed to notify sellers about order cancellation: ${err.message}`,
+        );
       }
 
       this.invalidateUserOrdersCache(userId);
       return updatedOrder;
     } catch (error) {
-      this.logger.error(`Error cancelling order: ${error.message}`, error.stack);
-      if (error instanceof ForbiddenException || error instanceof NotFoundException || error instanceof BadRequestException) {
+      this.logger.error(
+        `Error cancelling order: ${error.message}`,
+        error.stack,
+      );
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new BadRequestException('Failed to cancel order');
@@ -535,8 +568,12 @@ export class OrdersService {
             $set: {
               orderStatus: updateOrderStatusDto.orderStatus,
               updatedAt: new Date(),
-              ...(updateOrderStatusDto.trackingNumber && { trackingNumber: updateOrderStatusDto.trackingNumber }),
-              ...(updateOrderStatusDto.courierService && { courierService: updateOrderStatusDto.courierService }),
+              ...(updateOrderStatusDto.trackingNumber && {
+                trackingNumber: updateOrderStatusDto.trackingNumber,
+              }),
+              ...(updateOrderStatusDto.courierService && {
+                courierService: updateOrderStatusDto.courierService,
+              }),
             },
             $push: {
               statusHistory: {
@@ -570,51 +607,64 @@ export class OrdersService {
       const payload = {
         orderId: order._id,
         status: updateOrderStatusDto.orderStatus,
-        order: order // Send full updated order
+        order: order, // Send full updated order
       };
 
       // Real-time update to user
-      this.notificationsService.sendRealTimeUpdate(order.userId.toString(), 'order_update', payload);
+      this.notificationsService.sendRealTimeUpdate(
+        order.userId.toString(),
+        'order_update',
+        payload,
+      );
 
       // Real-time update to Admins
       this.notificationsService.sendToRole('admin', 'order.status.updated', {
         orderId: id,
         status: updateOrderStatusDto.orderStatus,
-        order: order
+        order: order,
       });
 
       // 1. Notify Buyer (Persistent Notification)
       await this.notificationsService.create(
         order.userId.toString(),
         `Order #${order._id} status updated to ${updateOrderStatusDto.orderStatus}`,
-        'order'
+        'order',
       );
 
       // 2. Notify Sellers (if updated by Admin)
       // Since updateStatus is protected by @Roles('admin') in controller (usually), we can assume admin action here
       // But let's look at the items to find sellers
-      const sellerIds = new Set((order.items || []).map((it: any) => it.productId?.sellerId?.toString()).filter(Boolean));
+      const sellerIds = new Set(
+        (order.items || [])
+          .map((it: any) => it.productId?.sellerId?.toString())
+          .filter(Boolean),
+      );
 
       for (const sellerId of sellerIds) {
         await this.notificationsService.create(
           sellerId,
           `Order #${order._id} status updated to ${updateOrderStatusDto.orderStatus} by Admin`,
-          'order'
+          'order',
         );
       }
 
       // 3. Award Loyalty Points if Delivered
       if (updateOrderStatusDto.orderStatus === 'delivered') {
         try {
-          await this.loyaltyService.awardPoints(order.userId.toString(), order.totalAmount);
+          await this.loyaltyService.awardPoints(
+            order.userId.toString(),
+            order.totalAmount,
+          );
           // Notify user about points
           await this.notificationsService.create(
             order.userId.toString(),
             `You earned points for your recent order!`,
-            'info'
+            'info',
           );
         } catch (err) {
-          this.logger.error(`Failed to award points for order ${order._id}: ${err.message}`);
+          this.logger.error(
+            `Failed to award points for order ${order._id}: ${err.message}`,
+          );
         }
       }
 

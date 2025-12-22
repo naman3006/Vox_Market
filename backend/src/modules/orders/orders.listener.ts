@@ -23,11 +23,18 @@ export class OrdersListener {
         payload,
       };
       admins.forEach((admin) => {
-        this.notificationGateway.sendNotificationToUser(admin._id.toString(), message);
+        this.notificationGateway.sendNotificationToUser(
+          admin._id.toString(),
+          message,
+        );
       });
-      this.logger.log(`Notified ${admins.length} admin(s) about paid order ${payload.orderId}`);
+      this.logger.log(
+        `Notified ${admins.length} admin(s) about paid order ${payload.orderId}`,
+      );
     } catch (err) {
-      this.logger.error(`Failed to notify admins for order.paid: ${err.message}`);
+      this.logger.error(
+        `Failed to notify admins for order.paid: ${err.message}`,
+      );
     }
   }
 }

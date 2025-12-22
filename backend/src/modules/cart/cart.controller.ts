@@ -21,7 +21,7 @@ import { User } from '../../common/interfaces/user.interface'; // Interface
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('user', 'admin')
 export class CartController {
-  constructor(private cartService: CartService) { }
+  constructor(private cartService: CartService) {}
 
   @Get()
   findOne(@CurrentUser() user: User) {

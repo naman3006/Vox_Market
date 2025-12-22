@@ -1,4 +1,3 @@
-// src/store/slices/reviewsSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../api/api';
 

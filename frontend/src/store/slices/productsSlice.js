@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../api/api';
 
-// Helper to convert product data to FormData
 const buildFormData = (data) => {
   const formData = new FormData();
 
@@ -21,7 +20,6 @@ const buildFormData = (data) => {
   return formData;
 };
 
-// ---------------- Fetch All ----------------
 export const findAllProducts = createAsyncThunk(
   'products/findAll',
   async (query, { rejectWithValue }) => {
@@ -37,7 +35,6 @@ export const findAllProducts = createAsyncThunk(
   }
 );
 
-// ---------------- Fetch One ----------------
 export const findOneProduct = createAsyncThunk(
   'products/findOne',
   async (id, { rejectWithValue }) => {
@@ -53,7 +50,6 @@ export const findOneProduct = createAsyncThunk(
   }
 );
 
-// ---------------- Featured ----------------
 export const findFeaturedProducts = createAsyncThunk(
   'products/findFeatured',
   async (limit = 8, { rejectWithValue }) => {
@@ -69,7 +65,6 @@ export const findFeaturedProducts = createAsyncThunk(
   }
 );
 
-// ---------------- Related ----------------
 export const findRelatedProducts = createAsyncThunk(
   'products/findRelated',
   async ({ id, limit = 4 }, { rejectWithValue }) => {
@@ -85,13 +80,12 @@ export const findRelatedProducts = createAsyncThunk(
   }
 );
 
-// ---------------- Recommendations ----------------
 export const findProductRecommendations = createAsyncThunk(
   'products/findRecommendations',
   async ({ id, limit = 4 }, { rejectWithValue }) => {
     try {
       const response = await api.get(`/recommendations/products/${id}`, { params: { limit } });
-      return response.data; // Controller returns array directly
+      return response.data;
     } catch (error) {
       return rejectWithValue({
         message: error.response?.data?.message || 'Failed to fetch recommendations',
@@ -101,7 +95,6 @@ export const findProductRecommendations = createAsyncThunk(
   }
 );
 
-// ---------------- CREATE PRODUCT (Updated) ----------------
 export const createProduct = createAsyncThunk(
   'products/create',
   async (productData, { rejectWithValue }) => {
@@ -161,7 +154,6 @@ export const createProduct = createAsyncThunk(
   }
 );
 
-// ---------------- UPDATE PRODUCT (Updated) ----------------
 export const updateProduct = createAsyncThunk(
   'products/update',
   async ({ id, data }, { rejectWithValue }) => {
@@ -187,7 +179,6 @@ export const updateProduct = createAsyncThunk(
   }
 );
 
-// ---------------- DELETE PRODUCT ----------------
 export const deleteProduct = createAsyncThunk(
   'products/delete',
   async (id, { rejectWithValue }) => {
@@ -236,7 +227,6 @@ const productsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // find all
       .addCase(findAllProducts.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -247,12 +237,10 @@ const productsSlice = createSlice({
         const page = action.payload.page || 1;
 
         if (page > 1) {
-          // Append products for infinite scroll, avoiding duplicates
           const existingIds = new Set(state.products.map(p => p._id));
           const uniqueNewProducts = newProducts.filter(p => !existingIds.has(p._id));
           state.products = [...state.products, ...uniqueNewProducts];
         } else {
-          // Replace for new search/filter or page 1
           state.products = newProducts;
         }
 
@@ -265,7 +253,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
       })
 
-      // find one
       .addCase(findOneProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -280,7 +267,6 @@ const productsSlice = createSlice({
         state.product = null;
       })
 
-      // featured
       .addCase(findFeaturedProducts.pending, (state) => {
         state.featuredLoading = true;
         state.error = null;
@@ -294,7 +280,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
       })
 
-      // related
       .addCase(findRelatedProducts.pending, (state) => {
         state.relatedLoading = true;
         state.error = null;
@@ -308,7 +293,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
       })
 
-      // recommendations
       .addCase(findProductRecommendations.pending, (state) => {
         state.recommendationsLoading = true;
         state.error = null;
@@ -322,7 +306,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
       })
 
-      // create
       .addCase(createProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -336,7 +319,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
       })
 
-      // update
       .addCase(updateProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -354,7 +336,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
       })
 
-      // delete
       .addCase(deleteProduct.pending, (state) => {
         state.loading = true;
         state.error = null;

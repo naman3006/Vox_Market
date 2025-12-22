@@ -121,8 +121,6 @@ export class Order {
   @Prop({ enum: OrderStatus, default: OrderStatus.pending })
   orderStatus: OrderStatus;
 
-
-
   @Prop({ type: ShippingAddress, required: true })
   shippingAddress: ShippingAddress;
 

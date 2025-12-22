@@ -25,7 +25,7 @@ export class Cart {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-   @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true })
   role: string;
 
   @Prop({ type: [CartItemSchema], default: [] })

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../auth/schemas/user.schema';
@@ -6,7 +10,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async findAll(): Promise<UserDocument[]> {
     return this.userModel.find().exec();
@@ -33,7 +37,7 @@ export class UsersService {
       if (!user) throw new NotFoundException('User not found');
       return user;
     } catch (error) {
-      if (error.code === 11000) {
+      if ((error as { code?: number }).code === 11000) {
         throw new ConflictException('Email already in use');
       }
       throw error;
@@ -59,7 +63,10 @@ export class UsersService {
   }
 
   async findByIdWith2FASecret(id: string): Promise<UserDocument> {
-    return this.userModel.findById(id).select('+twoFactorAuthenticationSecret').exec();
+    return this.userModel
+      .findById(id)
+      .select('+twoFactorAuthenticationSecret')
+      .exec();
   }
 
   async turnOffTwoFactorAuthentication(userId: string) {

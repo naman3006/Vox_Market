@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   NotFoundException,
@@ -9,7 +7,7 @@ import {
   Optional,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, FilterQuery } from 'mongoose';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Product, ProductDocument } from './schemas/product.schema';
@@ -17,6 +15,15 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
 import { UploadService } from '../upload/upload.service';
+
+// Define interface for error handling
+interface MongoError {
+  code?: number;
+  keyValue?: Record<string, any>;
+  name?: string;
+  message?: string;
+  errors?: Record<string, { message: string }>;
+}
 
 // Define interface
 export interface ProductQueryResult {
@@ -34,9 +41,9 @@ export class ProductsService {
 
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
-    private readonly uploadService: UploadService, // ✔ REQUIRED FIRST
-    @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache, // ✔ OPTIONAL LAST
-  ) {}
+    private readonly uploadService: UploadService,
+    @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
+  ) { }
 
   // Convert array | string | "" → string
   private toStringValue(value: string[] | string | undefined): string {
@@ -63,7 +70,8 @@ export class ProductsService {
       }
     }
 
-    const finalDto: any = {
+    // Explicitly type finalDto
+    const finalDto: CreateProductDto = {
       ...createProductDto,
       images,
       thumbnail,
@@ -72,13 +80,15 @@ export class ProductsService {
         .map((t) => t.trim())
         .filter(Boolean),
 
-      seo: {
-        ...createProductDto.seo,
-        keywords: this.toStringValue(createProductDto.seo?.keywords)
-          .split(',')
-          .map((k) => k.trim())
-          .filter(Boolean),
-      },
+      seo: createProductDto.seo
+        ? {
+          ...createProductDto.seo,
+          keywords: this.toStringValue(createProductDto.seo.keywords)
+            .split(',')
+            .map((k) => k.trim())
+            .filter(Boolean),
+        }
+        : undefined,
     };
 
     return this.internalCreate(finalDto, sellerId);
@@ -86,14 +96,12 @@ export class ProductsService {
 
   // Internal create
   private async internalCreate(
-    createProductDto: any,
+    createProductDto: CreateProductDto,
     sellerId?: string,
   ): Promise<ProductDocument> {
     // Safely get categoryId and trim if it's a string
-    const categoryId = typeof createProductDto?.categoryId === 'string' 
-      ? createProductDto.categoryId.trim() 
-      : createProductDto?.categoryId;
-    
+    const categoryId = createProductDto.categoryId?.trim();
+
     if (!categoryId) {
       throw new BadRequestException('Category is required.');
     }
@@ -112,21 +120,21 @@ export class ProductsService {
     }
 
     try {
-      const productData: any = {
+      // Create a plain object that matches Product schema structure
+      const productData: Partial<Product> = {
         ...createProductDto,
         categoryId: new Types.ObjectId(categoryId),
+        sellerId:
+          sellerId && Types.ObjectId.isValid(sellerId)
+            ? new Types.ObjectId(sellerId)
+            : undefined,
       };
 
-      if (sellerId && Types.ObjectId.isValid(sellerId)) {
-        productData.sellerId = new Types.ObjectId(sellerId);
-      }
-
-      // Try saving the product. If there's a duplicate SKU error, attempt to
-      // regenerate the SKU a few times before failing.
+      // Try saving
       let savedProduct: ProductDocument | null = null;
       let attempts = 0;
       const maxAttempts = 5;
-      let lastError: any = null;
+      let lastError: unknown = null;
 
       while (attempts < maxAttempts) {
         try {
@@ -135,47 +143,48 @@ export class ProductsService {
           break;
         } catch (err) {
           lastError = err;
-          // If duplicate key on sku, regenerate and retry
-          if ((err as any).code === 11000 && Object.keys((err as any).keyValue || {}).includes('sku')) {
+          // Use MongoError interface
+          const mongoErr = err as MongoError;
+          if (
+            mongoErr.code === 11000 &&
+            Object.keys(mongoErr.keyValue || {}).includes('sku')
+          ) {
             attempts += 1;
-            this.logger.warn(`Duplicate SKU detected, regenerating SKU (attempt ${attempts})`);
-            // Generate a new SKU using existing logic and append a short random suffix
-            productData.sku = `${this.generateSKU(createProductDto.title)}-${Math.random().toString(36).slice(2, 7)}`;
-            // continue loop to retry save
+            this.logger.warn(
+              `Duplicate SKU detected, regenerating SKU (attempt ${attempts})`,
+            );
+            const newSku = `${this.generateSKU(createProductDto.title)}-${Math.random().toString(36).slice(2, 7)}`;
+            productData.sku = newSku;
             continue;
           }
-
-          // Non-recoverable error — break and handle below
           break;
         }
       }
 
       if (!savedProduct) {
-        // If we exited without saving, rethrow lastError to be handled below
         throw lastError || new Error('Failed to save product');
       }
 
       this.invalidateProductCache();
       return savedProduct;
     } catch (error) {
-      // Log original error for debugging
-      this.logger.error('Failed to create product', error as any);
+      this.logger.error('Failed to create product', error);
 
-      // Try to extract a meaningful message from common Mongoose errors
-      if (error && (error as any).name === 'ValidationError') {
-        const msgs = Object.values((error as any).errors || {}).map((e: any) => e.message);
+      const err = error as MongoError;
+
+      if (err.name === 'ValidationError') {
+        const msgs = Object.values(err.errors || {}).map((e: any) => e.message);
         throw new BadRequestException(msgs.join('; ') || 'Validation failed');
       }
 
-      // Duplicate key (unique index) error
-      if ((error as any).code === 11000) {
-        const key = Object.keys((error as any).keyValue || {}).join(', ');
+      if (err.code === 11000) {
+        const key = Object.keys(err.keyValue || {}).join(', ');
         throw new BadRequestException(`Duplicate value for field(s): ${key}`);
       }
 
-      // Fallback to original message if available
-      const msg = (error as any)?.message;
-      throw new BadRequestException(msg || 'Failed to create product');
+      throw new BadRequestException(
+        (err as any).message || 'Failed to create product',
+      );
     }
   }
 
@@ -217,7 +226,7 @@ export class ProductsService {
       }
     }
 
-    const finalDto: any = {
+    const finalDto: UpdateProductDto = {
       ...updateProductDto,
       images,
       thumbnail,
@@ -246,14 +255,11 @@ export class ProductsService {
   // Internal update
   private async internalUpdate(
     id: string,
-    updateProductDto: any,
+    updateProductDto: UpdateProductDto,
   ): Promise<ProductDocument> {
     if (updateProductDto.categoryId !== undefined) {
-      // Safely get categoryId and trim if it's a string
-      const categoryId = typeof updateProductDto?.categoryId === 'string' 
-        ? updateProductDto.categoryId.trim() 
-        : updateProductDto?.categoryId;
-      
+      const categoryId = updateProductDto.categoryId?.trim();
+
       if (!categoryId) {
         throw new BadRequestException('Category cannot be empty.');
       }
@@ -262,26 +268,21 @@ export class ProductsService {
       }
     }
 
-    const updateData = {
+    const updateData: Partial<Product> = {
       ...updateProductDto,
       ...(updateProductDto.categoryId && {
-        categoryId: new Types.ObjectId(typeof updateProductDto.categoryId === 'string' 
-          ? updateProductDto.categoryId.trim() 
-          : updateProductDto.categoryId),
+        categoryId: new Types.ObjectId(updateProductDto.categoryId.trim()),
       }),
     };
 
-    if (
-      updateProductDto.stock !== undefined &&
-      !updateProductDto.stockStatus
-    ) {
+    if (updateProductDto.stock !== undefined && !updateProductDto.stockStatus) {
       updateData.stockStatus =
         updateProductDto.stock > 0 ? 'in-stock' : 'out-of-stock';
     }
 
     try {
       const product = await this.productModel
-        .findByIdAndUpdate(id, updateData, { new: true })
+        .findByIdAndUpdate(id, { $set: updateData }, { new: true })
         .populate('categoryId')
         .exec();
 
@@ -291,22 +292,13 @@ export class ProductsService {
 
       this.invalidateProductCache();
       return product;
-    } catch (error) {
+    } catch {
       throw new BadRequestException('Failed to update product');
     }
   }
 
   async findAll(query: QueryProductDto): Promise<ProductQueryResult> {
     const {
-      category,
-      search,
-      brand,
-      minPrice,
-      maxPrice,
-      minRating,
-      isFeatured,
-      isActive,
-      tags,
       sortBy = 'createdAt',
       sortOrder = 'desc',
       limit = 10,
@@ -366,11 +358,10 @@ export class ProductsService {
       throw new NotFoundException('Product not found');
     }
 
-    setTimeout(() => {
-      this.productModel
-        .updateOne({ _id: id }, { $inc: { viewCount: 1 } })
-        .exec();
-    }, 0);
+    // Fire and forget view increment - suppressing promise warning with void
+    void this.productModel
+      .updateOne({ _id: id }, { $inc: { viewCount: 1 } })
+      .exec();
 
     return product;
   }
@@ -379,20 +370,22 @@ export class ProductsService {
     createProductDto: CreateProductDto,
     sellerId?: string,
   ): Promise<ProductDocument> {
-    const transformedDto: any = {
+    const transformedDto: CreateProductDto = {
       ...createProductDto,
       tags: this.toStringValue(createProductDto.tags)
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean),
 
-      seo: {
-        ...createProductDto.seo,
-        keywords: this.toStringValue(createProductDto.seo?.keywords)
-          .split(',')
-          .map((k) => k.trim())
-          .filter(Boolean),
-      },
+      seo: createProductDto.seo
+        ? {
+          ...createProductDto.seo,
+          keywords: this.toStringValue(createProductDto.seo.keywords)
+            .split(',')
+            .map((k) => k.trim())
+            .filter(Boolean),
+        }
+        : undefined,
     };
 
     return this.internalCreate(transformedDto, sellerId);
@@ -402,7 +395,7 @@ export class ProductsService {
     id: string,
     updateProductDto: UpdateProductDto,
   ): Promise<ProductDocument> {
-    const transformedDto: any = {
+    const transformedDto: UpdateProductDto = {
       ...updateProductDto,
 
       ...(updateProductDto.tags !== undefined && {
@@ -450,6 +443,7 @@ export class ProductsService {
     return id;
   }
 
+  // ... (getFeaturedProducts, getRelatedProducts kept as is or assumed)
   async getFeaturedProducts(limit: number = 8): Promise<ProductDocument[]> {
     const cacheKey = `${this.FEATURED_CACHE_KEY}:${limit}`;
 
@@ -497,8 +491,10 @@ export class ProductsService {
       .exec()) as ProductDocument[];
   }
 
-  private buildFilter(params: Partial<QueryProductDto>): Record<string, any> {
-    const filter: Record<string, any> = {};
+  private buildFilter(
+    params: Partial<QueryProductDto>,
+  ): FilterQuery<ProductDocument> {
+    const filter: FilterQuery<ProductDocument> = {};
     filter.categoryId = { $exists: true, $ne: null };
 
     if (params.category) {
@@ -513,10 +509,12 @@ export class ProductsService {
       filter.brand = { $regex: params.brand, $options: 'i' };
     }
 
+    // Safe price filter construction
     if (params.minPrice !== undefined || params.maxPrice !== undefined) {
-      filter.price = {};
-      if (params.minPrice !== undefined) filter.price.$gte = params.minPrice;
-      if (params.maxPrice !== undefined) filter.price.$lte = params.maxPrice;
+      filter.price = {
+        ...(params.minPrice !== undefined && { $gte: params.minPrice }),
+        ...(params.maxPrice !== undefined && { $lte: params.maxPrice }),
+      };
     }
 
     if (params.minRating !== undefined) {

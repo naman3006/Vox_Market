@@ -20,7 +20,7 @@ export class MailService {
   constructor(
     private mailerService: MailerService,
     private configService: ConfigService,
-  ) { }
+  ) {}
 
   /**
    * Send order confirmation to customer with order details

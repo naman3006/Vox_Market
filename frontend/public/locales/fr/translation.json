@@ -11,7 +11,8 @@
         "dashboard": "Tableau de Bord",
         "products": "Produits",
         "categories": "Catégories",
-        "coupons": "Coupons"
+        "coupons": "Coupons",
+        "search_placeholder": "Je cherche..."
     },
     "common": {
         "login": "Connexion",

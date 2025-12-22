@@ -18,7 +18,7 @@ import { User } from '../../common/interfaces/user.interface'; // Interface
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrdersController {
-  constructor(private ordersService: OrdersService) { }
+  constructor(private ordersService: OrdersService) {}
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto, @CurrentUser() user: User) {

@@ -1,4 +1,3 @@
-// src/store/slices/ordersSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../api/api';
 
@@ -102,13 +101,11 @@ const ordersSlice = createSlice({
         if (index !== -1) state.allOrders[index] = action.payload;
       })
       .addCase(cancelOrder.fulfilled, (state, action) => {
-        // Update status in myOrders
         const index = state.myOrders.findIndex((o) => o._id === action.payload._id || o.id === action.payload.id);
         if (index !== -1) {
           state.myOrders[index] = action.payload;
         }
       });
-    // Add pending/rejected as needed
   },
 });
 

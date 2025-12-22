@@ -2,7 +2,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../api/api";
 
-// Fetch all categories
 export const findAllCategories = createAsyncThunk(
   "categories/findAll",
   async (_, { rejectWithValue }) => {
@@ -54,7 +53,6 @@ const categoriesSlice = createSlice({
   },
 });
 
-// SELECTOR
 export const selectAllCategories = (state) => state.categories.categories;
 
 export default categoriesSlice.reducer;

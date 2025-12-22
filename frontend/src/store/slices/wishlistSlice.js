@@ -1,4 +1,3 @@
-// src/store/slices/wishlistSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../api/api';
 
@@ -18,7 +17,6 @@ export const addToWishlist = createAsyncThunk(
   'wishlist/add',
   async (payload, { rejectWithValue }) => {
     try {
-      // Support both direct ID (legacy) and object { productId, wishlistId }
       const productId = typeof payload === 'string' ? payload : payload.productId;
       const wishlistId = typeof payload === 'object' ? payload.wishlistId : undefined;
 
@@ -50,7 +48,6 @@ export const removeFromWishlist = createAsyncThunk(
       const productId = typeof payload === 'string' ? payload : payload.productId;
       const wishlistId = typeof payload === 'object' ? payload.wishlistId : undefined;
 
-      // Use 'data' config for DELETE requests with body
       const response = await api.delete(`/wishlist/remove/${productId}`, { data: { wishlistId } });
       return response.data.data;
     } catch (error) {
@@ -62,22 +59,19 @@ export const removeFromWishlist = createAsyncThunk(
 const wishlistSlice = createSlice({
   name: 'wishlist',
   initialState: {
-    wishlist: null, // Legacy
-    wishlists: [], // New support
-    items: [], // Flattened IDs for fast lookup
+    wishlist: null, 
+    wishlists: [],
+    items: [], 
     loading: false,
     error: null,
   },
   extraReducers: (builder) => {
     builder
       .addCase(findWishlist.fulfilled, (state, action) => {
-        // Handle array response
         const data = Array.isArray(action.payload) ? action.payload : [action.payload];
         state.wishlists = data;
-        // Flatten all product IDs for easy "isFavorite" check
         const allIds = new Set();
         data.forEach(list => {
-          // Support both new 'items' and legacy 'productIds'
           if (list.items) {
             list.items.forEach(item => allIds.add(item.productId._id || item.productId));
           } else if (list.productIds) {
@@ -88,7 +82,6 @@ const wishlistSlice = createSlice({
         state.wishlist = data[0] || null;
       })
       .addCase(addToWishlist.fulfilled, (state, action) => {
-        // Update the specific wishlist in the array
         const updatedList = action.payload;
         const index = state.wishlists.findIndex(w => w._id === updatedList._id);
         if (index !== -1) {
@@ -96,7 +89,6 @@ const wishlistSlice = createSlice({
         } else {
           state.wishlists.push(updatedList);
         }
-        // Update items list
         if (updatedList.items) {
           updatedList.items.forEach(item => {
             const id = item.productId._id || item.productId;
@@ -119,7 +111,6 @@ const wishlistSlice = createSlice({
         if (index !== -1) {
           state.wishlists[index] = updatedList;
         }
-        // Re-calculate items (expensive but safe)
         const allIds = new Set();
         state.wishlists.forEach(list => {
           if (list.items) {

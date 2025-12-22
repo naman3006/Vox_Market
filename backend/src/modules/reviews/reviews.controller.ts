@@ -14,14 +14,15 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { User } from '../../common/interfaces/user.interface';
 
 @Controller('reviews')
 export class ReviewsController {
-  constructor(private reviewsService: ReviewsService) { }
+  constructor(private reviewsService: ReviewsService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(@Body() createReviewDto: CreateReviewDto, @CurrentUser() user: any) {
+  create(@Body() createReviewDto: CreateReviewDto, @CurrentUser() user: User) {
     return this.reviewsService.create({ ...createReviewDto, userId: user.id });
   }
 

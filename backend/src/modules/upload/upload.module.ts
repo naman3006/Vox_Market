@@ -11,7 +11,7 @@ import { UploadController } from './upload.controller';
   imports: [
     MulterModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: () => ({
         storage: diskStorage({
           destination: './uploads/products',
           filename: (req, file, callback) => {

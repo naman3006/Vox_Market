@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { Controller, Post, Body, Get, UseGuards, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -10,7 +17,7 @@ import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   @Public()
   @Post('register')
@@ -43,11 +50,17 @@ export class AuthController {
   }
 
   @Post('reset-password')
-  async resetPassword(@Body() body: { email: string; otp: string; newPassword: string }) {
+  async resetPassword(
+    @Body() body: { email: string; otp: string; newPassword: string },
+  ) {
     if (!body.email || !body.otp || !body.newPassword) {
       throw new BadRequestException('All fields are required');
     }
-    await this.authService.resetPassword(body.email, body.otp, body.newPassword);
+    await this.authService.resetPassword(
+      body.email,
+      body.otp,
+      body.newPassword,
+    );
     return { message: 'Password reset successfully' };
   }
 

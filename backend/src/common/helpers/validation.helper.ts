@@ -46,7 +46,9 @@ export class ValidationHelper {
     }
 
     if (!/[!@#$%^&*]/.test(password)) {
-      errors.push('Password must contain at least one special character (!@#$%^&*)');
+      errors.push(
+        'Password must contain at least one special character (!@#$%^&*)',
+      );
     }
 
     return {
@@ -67,9 +69,7 @@ export class ValidationHelper {
    * Sanitizes user input to prevent XSS
    */
   static sanitizeInput(input: string): string {
-    return input
-      .replace(/[<>]/g, '')
-      .trim();
+    return input.replace(/[<>]/g, '').trim();
   }
 }
 
@@ -208,7 +208,11 @@ export class StringHelper {
   /**
    * Truncates a string to a specified length
    */
-  static truncate(text: string, length: number, suffix: string = '...'): string {
+  static truncate(
+    text: string,
+    length: number,
+    suffix: string = '...',
+  ): string {
     if (text.length <= length) return text;
     return text.substring(0, length - suffix.length) + suffix;
   }
@@ -224,8 +228,9 @@ export class StringHelper {
    * Converts a string to title case
    */
   static toTitleCase(text: string): string {
-    return text.replace(/\w\S*/g, (txt) =>
-      txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+    return text.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
     );
   }
 }

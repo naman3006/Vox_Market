@@ -15,7 +15,7 @@ import { User } from '../../common/interfaces/user.interface'; // Interface
 
 @Controller('wishlist')
 export class WishlistController {
-  constructor(private wishlistService: WishlistService) { }
+  constructor(private wishlistService: WishlistService) {}
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -36,8 +36,14 @@ export class WishlistController {
   }
 
   @Post('shared/toggle-bought')
-  toggleBought(@Body() body: { shareToken: string; productId: string; boughtBy: string }) {
-    return this.wishlistService.toggleBoughtStatus(body.shareToken, body.productId, body.boughtBy);
+  toggleBought(
+    @Body() body: { shareToken: string; productId: string; boughtBy: string },
+  ) {
+    return this.wishlistService.toggleBoughtStatus(
+      body.shareToken,
+      body.productId,
+      body.boughtBy,
+    );
   }
 
   @Get(':id')
@@ -48,19 +54,31 @@ export class WishlistController {
 
   @Patch(':id/privacy')
   @UseGuards(JwtAuthGuard)
-  updatePrivacy(@Param('id') id: string, @Body('privacy') privacy: string, @CurrentUser() user: User) {
+  updatePrivacy(
+    @Param('id') id: string,
+    @Body('privacy') privacy: string,
+    @CurrentUser() user: User,
+  ) {
     return this.wishlistService.updatePrivacy(id, user.id, privacy);
   }
 
   @Post('add/:productId')
   @UseGuards(JwtAuthGuard)
-  add(@Param('productId') productId: string, @CurrentUser() user: User, @Body('wishlistId') wishlistId?: string) {
+  add(
+    @Param('productId') productId: string,
+    @CurrentUser() user: User,
+    @Body('wishlistId') wishlistId?: string,
+  ) {
     return this.wishlistService.add(user.id, productId, wishlistId);
   }
 
   @Delete('remove/:productId')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('productId') productId: string, @CurrentUser() user: User, @Body('wishlistId') wishlistId?: string) {
+  remove(
+    @Param('productId') productId: string,
+    @CurrentUser() user: User,
+    @Body('wishlistId') wishlistId?: string,
+  ) {
     return this.wishlistService.remove(user.id, productId, wishlistId);
   }
 
@@ -72,7 +90,11 @@ export class WishlistController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @Body() body: { name?: string }, @CurrentUser() user: User) {
+  update(
+    @Param('id') id: string,
+    @Body() body: { name?: string },
+    @CurrentUser() user: User,
+  ) {
     return this.wishlistService.update(id, user.id, body);
   }
 }

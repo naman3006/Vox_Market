@@ -25,11 +25,21 @@ import { ChatbotModule } from './modules/chatbot/chatbot.module';
 import { QuestionsModule } from './modules/questions/questions.module';
 import { SocialProofModule } from './modules/social-proof/social-proof.module';
 import { CoBrowsingModule } from './modules/co-browsing/co-browsing.module';
-
+import { GamificationModule } from './modules/gamification/gamification.module';
 
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import * as path from 'path';
+
+console.log('Current Dir:', __dirname);
+
+import * as fs from 'fs';
+
+let i18nPath = path.join(process.cwd(), 'src', 'i18n');
+if (!fs.existsSync(i18nPath)) {
+  i18nPath = path.join(process.cwd(), 'dist', 'i18n');
+}
+console.log('Resolving i18n Path:', i18nPath);
 
 @Module({
   imports: [
@@ -37,8 +47,9 @@ import * as path from 'path';
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
-        path: path.join(__dirname, '..', 'i18n'),
+        path: i18nPath,
         watch: true,
+        logging: true,
       },
       resolvers: [
         { use: QueryResolver, options: ['lang'] },
@@ -75,8 +86,9 @@ import * as path from 'path';
     QuestionsModule,
     SocialProofModule,
     CoBrowsingModule,
+    GamificationModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

@@ -7,7 +7,7 @@ import * as path from 'path';
 
 @Injectable()
 export class UploadService {
-  constructor(private configService: ConfigService) { }
+  constructor(private configService: ConfigService) {}
 
   async optimizeImage(
     filePath: string,
@@ -36,7 +36,7 @@ export class UploadService {
       await transformer.toFile(optimizedPath);
 
       // Delete original file
-      fs.unlinkSync(filePath);
+      await fs.promises.unlink(filePath);
 
       return optimizedPath;
     } catch (error) {
@@ -45,7 +45,7 @@ export class UploadService {
     }
   }
 
-  async createThumbnail(filePath: string): Promise<string> {
+  async createThumbnail(filePath: string): Promise<string | null> {
     const parsedPath = path.parse(filePath);
     const thumbnailFileName = `${parsedPath.name}-thumb${parsedPath.ext}`;
     const thumbnailPath = path.join(parsedPath.dir, thumbnailFileName);
@@ -95,29 +95,32 @@ export class UploadService {
         const thumbnailPath = await this.createThumbnail(optimizedPath);
 
         // Convert to URL paths
-        const baseUrl = this.configService.get(
+        const baseUrl = this.configService.get<string>(
           'BASE_URL',
           'http://localhost:3000',
         );
 
         // Extract relative path starting from 'uploads/' to avoid absolute path in URL
         const uploadsIndex = optimizedPath.indexOf('uploads');
-        const relativePath = uploadsIndex > -1
-          ? optimizedPath.substring(uploadsIndex).replace(/\\/g, '/')
-          : optimizedPath.replace(/\\/g, '/');
+
+        const relativePath =
+          uploadsIndex > -1
+            ? optimizedPath.substring(uploadsIndex).replace(/\\/g, '/')
+            : optimizedPath.replace(/\\/g, '/');
 
         const imageUrl = `${baseUrl}/${relativePath}`;
 
         // Also extract relative path for thumbnail
-        const thumbnailRelativePath = thumbnailPath
-          ? (thumbnailPath.indexOf('uploads') > -1
-            ? thumbnailPath.substring(thumbnailPath.indexOf('uploads')).replace(/\\/g, '/')
-            : thumbnailPath.replace(/\\/g, '/'))
-          : null;
-
-        const thumbnailUrl = thumbnailRelativePath
-          ? `${baseUrl}/${thumbnailRelativePath}`
-          : imageUrl;
+        let thumbnailUrl = imageUrl;
+        if (thumbnailPath) {
+          const thumbnailRelativePath =
+            thumbnailPath.indexOf('uploads') > -1
+              ? thumbnailPath
+                  .substring(thumbnailPath.indexOf('uploads'))
+                  .replace(/\\/g, '/')
+              : thumbnailPath.replace(/\\/g, '/');
+          thumbnailUrl = `${baseUrl}/${thumbnailRelativePath}`;
+        }
 
         images.push(imageUrl);
         thumbnails.push(thumbnailUrl);
@@ -129,13 +132,11 @@ export class UploadService {
     return { images, thumbnails };
   }
 
-  deleteFile(filePath: string): boolean {
+  async deleteFile(filePath: string): Promise<boolean> {
     try {
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-        return true;
-      }
-      return false;
+      await fs.promises.access(filePath);
+      await fs.promises.unlink(filePath);
+      return true;
     } catch (error) {
       console.error('Error deleting file:', error);
       return false;
@@ -143,11 +144,14 @@ export class UploadService {
   }
 
   async deleteProductImages(imageUrls: string[]): Promise<void> {
-    const baseUrl = this.configService.get('BASE_URL', 'http://localhost:3000');
+    const baseUrl = this.configService.get<string>(
+      'BASE_URL',
+      'http://localhost:3000',
+    );
 
     for (const url of imageUrls) {
       const filePath = url.replace(baseUrl + '/', '');
-      this.deleteFile(filePath);
+      await this.deleteFile(filePath);
 
       // Also delete thumbnail
       const parsedPath = path.parse(filePath);
@@ -155,7 +159,7 @@ export class UploadService {
         parsedPath.dir,
         `${parsedPath.name}-thumb${parsedPath.ext}`,
       );
-      this.deleteFile(thumbnailPath);
+      await this.deleteFile(thumbnailPath);
     }
   }
 }

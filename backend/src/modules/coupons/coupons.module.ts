@@ -7,13 +7,13 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([{ name: Coupon.name, schema: CouponSchema }]),
-        NotificationsModule,
-        UsersModule
-    ],
-    controllers: [CouponsController],
-    providers: [CouponsService],
-    exports: [CouponsService],
+  imports: [
+    MongooseModule.forFeature([{ name: Coupon.name, schema: CouponSchema }]),
+    NotificationsModule,
+    UsersModule,
+  ],
+  controllers: [CouponsController],
+  providers: [CouponsService],
+  exports: [CouponsService],
 })
-export class CouponsModule { }
+export class CouponsModule {}

@@ -1,4 +1,3 @@
-// src/store/slices/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../api/api";
 
@@ -42,9 +41,6 @@ export const register = createAsyncThunk(
   }
 );
 
-// ------------------------------------------------------
-// LOGIN
-// ------------------------------------------------------
 export const login = createAsyncThunk(
   "auth/login",
   async (data, { rejectWithValue }) => {
@@ -169,9 +165,6 @@ const initialState = {
   isAuthenticated: !!active,
 };
 
-// ------------------------------------------------------
-// SLICE
-// ------------------------------------------------------
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -192,7 +185,6 @@ const authSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      // REGISTER
       .addCase(register.pending, (state) => {
         state.loading = true;
       })
@@ -217,7 +209,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // LOGIN
       .addCase(login.pending, (state) => {
         state.loading = true;
       })
@@ -263,7 +254,6 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
 
-        // update active user in session
         if (state.activeEmail && state.users[state.activeEmail]) {
           state.users[state.activeEmail].user = action.payload;
           saveUsers(state.users);
@@ -274,7 +264,6 @@ const authSlice = createSlice({
         state.user = null;
       })
 
-      // UPDATE PROFILE
       .addCase(updateProfile.pending, (state) => {
         state.loading = true;
       })
@@ -282,7 +271,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
 
-        // Update persistence
         if (state.activeEmail && state.users[state.activeEmail]) {
           state.users[state.activeEmail].user = action.payload;
           const oldEmail = state.activeEmail;
@@ -307,7 +295,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // UPLOAD AVATAR
       .addCase(uploadAvatar.pending, (state) => {
         state.loading = true;
       })
@@ -315,7 +302,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
 
-        // Update persistence
         if (state.activeEmail && state.users[state.activeEmail]) {
           state.users[state.activeEmail].user = action.payload;
           saveUsers(state.users);

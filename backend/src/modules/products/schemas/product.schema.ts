@@ -25,13 +25,13 @@ class ProductSpecification {
 @Schema({ _id: false })
 class SEO {
   @Prop()
-  metaTitle: string;
+  metaTitle?: string;
 
   @Prop()
-  metaDescription: string;
+  metaDescription?: string;
 
   @Prop({ type: [String] })
-  keywords: string[];
+  keywords?: string[];
 }
 
 @Schema({ timestamps: true })
@@ -105,14 +105,14 @@ export class Product {
   @Prop({
     type: String,
     enum: ['floor', 'wall'],
-    default: 'floor'
+    default: 'floor',
   })
   arPlacement: string;
 
   @Prop({
     type: String,
     enum: ['in-stock', 'out-of-stock', 'pre-order'],
-    default: 'in-stock'
+    default: 'in-stock',
   })
   stockStatus: string;
 

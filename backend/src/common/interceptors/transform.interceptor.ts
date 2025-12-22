@@ -27,9 +27,7 @@ export class TransFormInterceptor<T> implements NestInterceptor<
     return next.handle().pipe(
       tap(() => {
         const duration = Date.now() - startTime;
-        this.logger.debug(
-          `[${method}] ${url} completed in ${duration}ms`,
-        );
+        this.logger.debug(`[${method}] ${url} completed in ${duration}ms`);
       }),
       map((data) => {
         return {

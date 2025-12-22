@@ -31,7 +31,7 @@ export class UsersController {
   constructor(
     private usersService: UsersService,
     private filesService: FilesService,
-  ) { }
+  ) {}
 
   @Get()
   @Roles('admin')
@@ -61,7 +61,11 @@ export class UsersController {
 
   @Post(':id/delete')
   @Roles('admin', 'user', 'seller')
-  async verifyAndDelete(@Param('id') id: string, @Body('password') password: string, @CurrentUser() user: User) {
+  async verifyAndDelete(
+    @Param('id') id: string,
+    @Body('password') password: string,
+    @CurrentUser() user: User,
+  ) {
     if (user.role !== 'admin' && user.id !== id) {
       throw new Error('Unauthorized to delete this user');
     }
@@ -109,8 +113,12 @@ export class UsersController {
       throw new Error('Unauthorized to update this user');
     }
 
-    const { secure_url } = await this.filesService.uploadFile(file);
-    return this.usersService.update(id, { avatar: secure_url } as UpdateUserDto);
+    const uploadResult = (await this.filesService.uploadFile(file)) as {
+      secure_url: string;
+    };
+    return this.usersService.update(id, {
+      avatar: uploadResult.secure_url,
+    } as UpdateUserDto);
   }
   @Delete(':id')
   @Roles('admin')

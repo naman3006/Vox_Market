@@ -1,4 +1,3 @@
-// src/store/slices/adminSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '../api/api';
 

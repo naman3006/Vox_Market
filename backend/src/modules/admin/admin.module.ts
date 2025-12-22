@@ -5,10 +5,8 @@ import { AdminController } from './admin.controller';
 import { AnalyticsModule } from '../analytics/analytics.module';
 
 @Module({
-  imports: [
-    AnalyticsModule,
-  ],
+  imports: [AnalyticsModule],
   controllers: [AdminController],
   providers: [AdminService],
 })
-export class AdminModule { }
+export class AdminModule {}

@@ -23,10 +23,10 @@ export class Wishlist {
         productId: { type: Types.ObjectId, ref: 'Product', required: true },
         isBought: { type: Boolean, default: false },
         boughtBy: { type: String, default: null }, // Name of the person who bought it (User or Guest)
-        addedAt: { type: Date, default: Date.now }
-      }
+        addedAt: { type: Date, default: Date.now },
+      },
     ],
-    default: []
+    default: [],
   })
   items: {
     productId: Types.ObjectId;

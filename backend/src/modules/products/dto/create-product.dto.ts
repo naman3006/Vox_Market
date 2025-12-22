@@ -43,7 +43,14 @@ class SEODto {
   @IsOptional()
   metaDescription?: string;
 
-  @Transform(({ value }) => typeof value === 'string' ? value.split(',').map(k => k.trim()).filter(Boolean) : (value || []))
+  @Transform(({ value }) =>
+    typeof value === 'string'
+      ? value
+        .split(',')
+        .map((k) => k.trim())
+        .filter(Boolean)
+      : value || [],
+  )
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
@@ -63,12 +70,12 @@ export class CreateProductDto {
   @IsOptional()
   longDescription?: string; // Rich text HTML
 
-  @Transform(({ value }) => parseFloat(value))
+  @Transform(({ value }: { value: any }) => parseFloat(value))
   @IsNumber()
   @Min(0)
   price: number;
 
-  @Transform(({ value }) => value ? parseFloat(value) : undefined)
+  @Transform(({ value }: { value: any }) => (value ? parseFloat(value) : undefined))
   @IsNumber()
   @IsOptional()
   @Min(0)
@@ -91,19 +98,19 @@ export class CreateProductDto {
   @IsOptional()
   brand?: string;
 
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }: { value: any }) => parseInt(value, 10))
   @IsNumber()
   @Min(0)
   stock: number;
 
-  @Transform(({ value }) => value ? parseFloat(value) : undefined)
+  @Transform(({ value }: { value: any }) => (value ? parseFloat(value) : undefined))
   @IsNumber()
   @IsOptional()
   @Min(0)
   @Max(5)
   rating?: number;
 
-  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
+  @Transform(({ value }: { value: any }) => (value ? parseInt(value, 10) : undefined))
   @IsNumber()
   @IsOptional()
   @Min(0)
@@ -113,7 +120,7 @@ export class CreateProductDto {
   @IsOptional()
   sku?: string; // Stock Keeping Unit
 
-  @Transform(({ value }) => value ? parseFloat(value) : undefined)
+  @Transform(({ value }: { value: any }) => (value ? parseFloat(value) : undefined))
   @IsNumber()
   @IsOptional()
   @Min(0)
@@ -131,18 +138,25 @@ export class CreateProductDto {
   @IsOptional()
   specifications?: ProductSpecificationDto[];
 
-  @Transform(({ value }) => typeof value === 'string' ? value.split(',').map(t => t.trim()).filter(Boolean) : (value || []))
+  @Transform(({ value }) =>
+    typeof value === 'string'
+      ? value
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+      : value || [],
+  )
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   tags?: string[];
 
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }: { value: any }) => value === 'true' || value === true)
   @IsBoolean()
   @IsOptional()
   isFeatured?: boolean;
 
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }: { value: any }) => value === 'true' || value === true)
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;

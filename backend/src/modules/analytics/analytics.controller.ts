@@ -8,31 +8,33 @@ import { Roles } from '../auth/decorators/roles.decorator';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'reseller')
 export class AnalyticsController {
-    constructor(private readonly analyticsService: AnalyticsService) { }
+  constructor(private readonly analyticsService: AnalyticsService) {}
 
-    @Get('dashboard')
-    getDashboardStats() {
-        return this.analyticsService.getDashboardStats();
-    }
+  @Get('dashboard')
+  getDashboardStats() {
+    return this.analyticsService.getDashboardStats();
+  }
 
-    @Get('sales-report')
-    getSalesReport(
-        @Query('startDate') startDate: string,
-        @Query('endDate') endDate: string,
-    ) {
-        const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        const end = endDate ? new Date(endDate) : new Date();
+  @Get('sales-report')
+  getSalesReport(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const end = endDate ? new Date(endDate) : new Date();
 
-        return this.analyticsService.getSalesReport(start, end);
-    }
+    return this.analyticsService.getSalesReport(start, end);
+  }
 
-    @Get('customer-insights')
-    getCustomerInsights() {
-        return this.analyticsService.getCustomerInsights();
-    }
+  @Get('customer-insights')
+  getCustomerInsights() {
+    return this.analyticsService.getCustomerInsights();
+  }
 
-    @Get('product/:id')
-    getProductAnalytics(@Param('id') id: string) {
-        return this.analyticsService.getProductAnalytics(id);
-    }
+  @Get('product/:id')
+  getProductAnalytics(@Param('id') id: string) {
+    return this.analyticsService.getProductAnalytics(id);
+  }
 }

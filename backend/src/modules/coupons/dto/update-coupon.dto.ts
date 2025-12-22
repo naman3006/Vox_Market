@@ -4,7 +4,7 @@ import { IsEnum, IsOptional } from 'class-validator';
 import { CouponStatus } from '../schemas/coupon.schema';
 
 export class UpdateCouponDto extends PartialType(CreateCouponDto) {
-    @IsOptional()
-    @IsEnum(CouponStatus)
-    status?: CouponStatus;
+  @IsOptional()
+  @IsEnum(CouponStatus)
+  status?: CouponStatus;
 }

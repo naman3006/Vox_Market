@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
@@ -29,13 +28,24 @@ import { MailService } from './mail.service';
                 pass: testAccount.pass,
               },
             };
-            console.log('[MailModule] --------------------------------------------------');
-            console.log('[MailModule] Using Ethereal Email for Development (Forced)');
+            console.log(
+              '[MailModule] --------------------------------------------------',
+            );
+            console.log(
+              '[MailModule] Using Ethereal Email for Development (Forced)',
+            );
             console.log(`[MailModule] Account: ${testAccount.user}`);
-            console.log('[MailModule] --------------------------------------------------');
+            console.log(
+              '[MailModule] --------------------------------------------------',
+            );
           } catch (err) {
-            console.error('[MailModule] Failed to create Ethereal test account', err);
-            console.warn('[MailModule] Falling back to environment configuration');
+            console.error(
+              '[MailModule] Failed to create Ethereal test account',
+              err,
+            );
+            console.warn(
+              '[MailModule] Falling back to environment configuration',
+            );
 
             // Fallback to Env Config if Ethereal fails
             transportConfig = {
@@ -81,4 +91,4 @@ import { MailService } from './mail.service';
   exports: [MailerModule, MailService],
   providers: [MailService],
 })
-export class MailModule { }
+export class MailModule {}

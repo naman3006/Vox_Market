@@ -11,7 +11,7 @@ export class Notification {
   @Prop({ required: true })
   message: string;
 
-  @Prop({ enum: ['order', 'promotion'], default: 'order' })
+  @Prop({ enum: ['order', 'promotion', 'system'], default: 'order' })
   type: string;
 
   @Prop({ default: false })

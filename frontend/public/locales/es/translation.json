@@ -11,7 +11,8 @@
         "dashboard": "Panel de Control",
         "products": "Productos",
         "categories": "Categorías",
-        "coupons": "Cupones"
+        "coupons": "Cupones",
+        "search_placeholder": "Estoy buscando..."
     },
     "common": {
         "login": "Iniciar sesión",

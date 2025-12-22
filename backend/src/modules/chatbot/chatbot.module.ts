@@ -10,16 +10,16 @@ import { CouponsModule } from '../coupons/coupons.module';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-    imports: [
-        ConfigModule,
-        OrdersModule,
-        ProductsModule,
-        CartModule,
-        WishlistModule,
-        CouponsModule,
-        UsersModule
-    ],
-    controllers: [ChatbotController],
-    providers: [ChatbotService],
+  imports: [
+    ConfigModule,
+    OrdersModule,
+    ProductsModule,
+    CartModule,
+    WishlistModule,
+    CouponsModule,
+    UsersModule,
+  ],
+  controllers: [ChatbotController],
+  providers: [ChatbotService],
 })
-export class ChatbotModule { }
+export class ChatbotModule {}

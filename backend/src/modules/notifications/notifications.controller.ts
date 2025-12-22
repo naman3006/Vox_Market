@@ -15,7 +15,7 @@ import { User } from '../../common/interfaces/user.interface'; // Interface
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationsController {
-  constructor(private notificationsService: NotificationsService) { }
+  constructor(private notificationsService: NotificationsService) {}
 
   @Get()
   findAll(@CurrentUser() user: User) {

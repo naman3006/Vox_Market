@@ -17,7 +17,7 @@ export class NotificationsService {
     @InjectModel(Notification.name)
     private notificationModel: Model<NotificationDocument>,
     private notificationGateway: NotificationGateway,
-  ) { }
+  ) {}
 
   async create(
     userId: string,
@@ -63,7 +63,7 @@ export class NotificationsService {
     await this.notificationModel
       .updateMany(
         { userId: new Types.ObjectId(userId), read: false },
-        { read: true }
+        { read: true },
       )
       .exec();
   }

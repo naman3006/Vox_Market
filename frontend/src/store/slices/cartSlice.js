@@ -1,4 +1,3 @@
-// src/store/slices/cartSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../api/api';
 
@@ -72,7 +71,7 @@ export const validateCoupon = createAsyncThunk(
         categoryIds,
         productIds,
       });
-      return response.data.data; // Expecting { valid: true, discount: number, message: string, coupon: object }
+      return response.data.data; 
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Invalid coupon');
     }
@@ -85,7 +84,7 @@ const cartSlice = createSlice({
     cart: null,
     loading: false,
     error: null,
-    coupon: null, // { code: string, discount: number, type: string }
+    coupon: null, 
     discountAmount: 0,
     couponError: null,
     couponLoading: false,
@@ -126,7 +125,6 @@ const cartSlice = createSlice({
         state.discountAmount = 0;
         state.couponError = null;
       })
-      // Coupon Reducers
       .addCase(validateCoupon.pending, (state) => {
         state.couponLoading = true;
         state.couponError = null;

@@ -1,4 +1,3 @@
-// src/store/slices/notificationsSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from '../api/api';
 
@@ -65,17 +64,14 @@ const notificationsSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(markAsRead.pending, (state, action) => {
-        // Optimistic update
         const index = state.notifications.findIndex(
           (n) => (n._id || n.id) === action.meta.arg
         );
         if (index !== -1) state.notifications[index].read = true;
       })
       .addCase(markAsRead.fulfilled, (state, action) => {
-        // Already handled in pending, but we can ensure consistency or do nothing
       })
       .addCase(markAsRead.rejected, (state, action) => {
-        // Revert on failure
         const index = state.notifications.findIndex(
           (n) => (n._id || n.id) === action.meta.arg
         );

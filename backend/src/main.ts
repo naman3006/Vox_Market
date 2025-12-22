@@ -3,7 +3,10 @@ import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import { I18nValidationExceptionFilter, i18nValidationErrorFactory } from 'nestjs-i18n';
+import {
+  I18nValidationExceptionFilter,
+  i18nValidationErrorFactory,
+} from 'nestjs-i18n';
 
 import { AppModule } from './app.module';
 import { TransFormInterceptor } from './common/interceptors/transform.interceptor';

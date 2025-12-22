@@ -16,9 +16,7 @@ import * as speakeasy from 'speakeasy';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { User, UserDocument } from './schemas/user.schema';
-import {
-  User as UserInterface,
-} from '../../common/interfaces/user.interface';
+import { User as UserInterface } from '../../common/interfaces/user.interface';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { MailService } from '../mail/mail.service';
 
@@ -34,7 +32,7 @@ export class AuthService {
     private jwtService: JwtService,
     private mailService: MailService,
     private readonly twoFactorAuthenticationService: TwoFactorAuthenticationService,
-  ) { }
+  ) {}
 
   async register(
     registerDto: RegisterDto,
@@ -84,14 +82,20 @@ export class AuthService {
     }
   }
 
-  async login(
-    loginDto: LoginDto,
-  ): Promise<{ user: UserInterface; token?: string; isTwoFactorAuthenticationEnabled?: boolean }> {
+  async login(loginDto: LoginDto): Promise<{
+    user: UserInterface;
+    token?: string;
+    isTwoFactorAuthenticationEnabled?: boolean;
+  }> {
     const { email, password, twoFactorAuthenticationCode } = loginDto;
 
-    const userDoc = await this.userModel.findOne({
-      email: email.toLowerCase(),
-    }).select('+twoFactorAuthenticationSecret +password +isTwoFactorEnabled +lockUntil +loginAttempts');
+    const userDoc = await this.userModel
+      .findOne({
+        email: email.toLowerCase(),
+      })
+      .select(
+        '+twoFactorAuthenticationSecret +password +isTwoFactorEnabled +lockUntil +loginAttempts',
+      );
 
     if (!userDoc) {
       this.logger.warn(`Login attempt with non-existent email: ${email}`);
@@ -138,7 +142,10 @@ export class AuthService {
 
       if (!twoFactorAuthenticationCode) {
         // Send email with code
-        const mailResult = await this.mailService.send2FACodeEmail(userDoc.email, token);
+        const mailResult = await this.mailService.send2FACodeEmail(
+          userDoc.email,
+          token,
+        );
 
         return {
           user: this.sanitizeUser(userDoc),
@@ -147,10 +154,11 @@ export class AuthService {
           twoFactorAuthUrl: mailResult.previewUrl,
         };
       }
-      const isCodeValid = this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
-        twoFactorAuthenticationCode,
-        userDoc,
-      );
+      const isCodeValid =
+        this.twoFactorAuthenticationService.isTwoFactorAuthenticationCodeValid(
+          twoFactorAuthenticationCode,
+          userDoc,
+        );
       if (!isCodeValid) {
         throw new UnauthorizedException('Wrong authentication code');
       }
@@ -212,7 +220,7 @@ export class AuthService {
     return {
       success: true,
       message: 'If your email is registered, you will receive an OTP shortly.',
-      previewUrl: mailResult.previewUrl
+      previewUrl: mailResult.previewUrl,
     };
   }
 
@@ -235,11 +243,15 @@ export class AuthService {
         user.resetPasswordAttempts = 0;
         await user.save();
         this.logger.warn(`Verify OTP failed: Too many attempts for ${email}`);
-        throw new BadRequestException('Too many failed attempts. Please request a new OTP.');
+        throw new BadRequestException(
+          'Too many failed attempts. Please request a new OTP.',
+        );
       }
 
       await user.save();
-      this.logger.warn(`Verify OTP failed: OTP mismatch for ${email}. Expected: ${user.resetPasswordOtp}, Received: ${otp}`);
+      this.logger.warn(
+        `Verify OTP failed: OTP mismatch for ${email}. Expected: ${user.resetPasswordOtp}, Received: ${otp}`,
+      );
       throw new BadRequestException('Invalid or expired OTP');
     }
 
@@ -255,7 +267,11 @@ export class AuthService {
     return true;
   }
 
-  async resetPassword(email: string, otp: string, newPassword: string): Promise<void> {
+  async resetPassword(
+    email: string,
+    otp: string,
+    newPassword: string,
+  ): Promise<void> {
     const user = await this.userModel.findOne({
       email: email.toLowerCase(),
       resetPasswordOtp: otp,

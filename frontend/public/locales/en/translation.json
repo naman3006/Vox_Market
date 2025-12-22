@@ -11,7 +11,8 @@
         "dashboard": "Dashboard",
         "products": "Products",
         "categories": "Categories",
-        "coupons": "Coupons"
+        "coupons": "Coupons",
+        "search_placeholder": "I'm shopping for..."
     },
     "common": {
         "login": "Login",

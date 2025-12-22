@@ -9,9 +9,9 @@ import {
 import { Request, Response } from 'express';
 
 @Catch()
-export class HttpExceptionFilter<T extends Error = Error>
-  implements ExceptionFilter<T>
-{
+export class HttpExceptionFilter<
+  T extends Error = Error,
+> implements ExceptionFilter<T> {
   private readonly logger = new Logger(HttpExceptionFilter.name);
 
   catch(exception: T, host: ArgumentsHost): void {
