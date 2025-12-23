@@ -25,6 +25,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { CouponsService } from '../coupons/coupons.service';
 import { LoyaltyService } from '../loyalty/loyalty.service';
 import { SocialProofGateway } from '../social-proof/social-proof.gateway';
+import { UserActivityService } from '../user-activity/user-activity.service';
 
 @Injectable()
 export class OrdersService {
@@ -40,8 +41,9 @@ export class OrdersService {
     private couponsService: CouponsService,
     private loyaltyService: LoyaltyService,
     private socialProofGateway: SocialProofGateway,
+    private userActivityService: UserActivityService,
     @Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache,
-  ) {}
+  ) { }
 
   async create(
     createOrderDto: CreateOrderDto,
@@ -116,6 +118,15 @@ export class OrdersService {
         userId,
         `Order #${savedOrder._id} created successfully`,
         'order',
+      );
+
+      // Log User Activity
+      await this.userActivityService.logActivity(
+        userId,
+        'ORDER_PLACED',
+        `Placed order #${savedOrder._id} for ${savedOrder.totalAmount}`,
+        null,
+        { orderId: savedOrder._id }
       );
 
       // 2. Notify Sellers

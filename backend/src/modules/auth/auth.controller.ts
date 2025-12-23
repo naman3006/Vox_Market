@@ -17,7 +17,7 @@ import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @Public()
   @Post('register')
@@ -29,6 +29,13 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@CurrentUser() user: User) {
+    await this.authService.logout(user.id);
+    return { message: 'Logged out successfully' };
   }
 
   @Post('forgot-password')

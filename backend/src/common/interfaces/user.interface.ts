@@ -15,6 +15,7 @@ export interface User {
   phone?: string;
   isTwoFactorEnabled?: boolean;
   createdAt?: string | Date;
+  referralCode?: string;
 }
 
 export type UserPayload = {

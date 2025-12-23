@@ -12,6 +12,8 @@ import { TwoFactorAuthenticationController } from './2fa.controller';
 import { TwoFactorAuthenticationService } from './2fa.service';
 import { UsersModule } from '../users/users.module';
 import { ConfigModule } from '@nestjs/config';
+import { LoyaltyModule } from '../loyalty/loyalty.module';
+import { UserActivityModule } from '../user-activity/user-activity.module';
 
 @Module({
   imports: [
@@ -21,9 +23,11 @@ import { ConfigModule } from '@nestjs/config';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MailModule,
     UsersModule,
+    LoyaltyModule,
+    UserActivityModule,
   ],
   controllers: [AuthController, TwoFactorAuthenticationController],
   providers: [AuthService, JwtStrategy, TwoFactorAuthenticationService],
   exports: [AuthService, TwoFactorAuthenticationService],
 })
-export class AuthModule {}
+export class AuthModule { }

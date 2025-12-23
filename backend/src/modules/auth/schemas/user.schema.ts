@@ -63,6 +63,13 @@ export class User {
 
   @Prop({ default: 0 })
   totalPointsEarned: number;
+
+  // Referral System
+  @Prop({ type: Types.ObjectId, ref: 'User', default: null })
+  referredBy: Types.ObjectId;
+
+  @Prop({ unique: true, sparse: true })
+  referralCode: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

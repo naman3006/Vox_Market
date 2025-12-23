@@ -5,6 +5,10 @@ import {
   GamificationProfile,
   GamificationProfileDocument,
 } from './schemas/gamification-profile.schema';
+import {
+  GamificationActivity,
+  GamificationActivityDocument,
+} from './schemas/gamification-activity.schema';
 import { LoyaltyService } from '../loyalty/loyalty.service';
 import { User } from '../auth/schemas/user.schema';
 
@@ -13,8 +17,10 @@ export class GamificationService {
   constructor(
     @InjectModel(GamificationProfile.name)
     private gamificationModel: Model<GamificationProfileDocument>,
+    @InjectModel(GamificationActivity.name)
+    private activityModel: Model<GamificationActivityDocument>,
     private loyaltyService: LoyaltyService,
-  ) {}
+  ) { }
 
   async getProfile(userId: string): Promise<GamificationProfileDocument> {
     let profile = await this.gamificationModel.findOne({ user: userId });
@@ -61,8 +67,6 @@ export class GamificationService {
       const isConsecutive =
         now.getTime() - lastCheckIn.getTime() < 48 * 60 * 60 * 1000 &&
         !isSameDay;
-      // Simplified: if diffDays is roughly 1. Better logic: check if lastCheckIn was "yesterday"
-      // Let's use simplified day diff for reliability across timezones (UTC stored)
 
       // Proper way: set hours to 0
       const today = new Date(now).setHours(0, 0, 0, 0);
@@ -95,6 +99,13 @@ export class GamificationService {
         pointsAwarded,
         `Daily Check-In (Streak: ${profile.currentStreak})`,
       );
+
+      await this.logActivity(
+        userId,
+        'reached',
+        `${pointsAwarded} Points (Streak ${profile.currentStreak})`,
+        'CHECKIN',
+      );
     }
 
     return {
@@ -115,12 +126,9 @@ export class GamificationService {
         now.getMonth() === lastSpin.getMonth() &&
         now.getFullYear() === lastSpin.getFullYear()
       ) {
-        throw new BadRequestException('Already spun today!');
+        throw new BadRequestException('Already spin today!');
       }
     }
-
-    // Spin Logic
-    // Rewards: { label: string, value: number (points), probability: number (0-1) }
     const rewards = [
       { label: '50 Points', value: 50, prob: 0.1 },
       { label: '20 Points', value: 20, prob: 0.2 },
@@ -150,6 +158,13 @@ export class GamificationService {
         selectednodes.value,
         `Spin Wheel Reward`,
       );
+
+      await this.logActivity(
+        userId,
+        'won',
+        `${selectednodes.value} Points`,
+        'SPIN',
+      );
     }
     await profile.save();
 
@@ -159,16 +174,118 @@ export class GamificationService {
     };
   }
 
+  async scratchCard(userId: string) {
+    const profile = await this.getProfile(userId);
+    const now = new Date();
+
+    if (profile.lastScratchDate) {
+      const lastScratch = new Date(profile.lastScratchDate);
+      if (
+        now.getDate() === lastScratch.getDate() &&
+        now.getMonth() === lastScratch.getMonth() &&
+        now.getFullYear() === lastScratch.getFullYear()
+      ) {
+        throw new BadRequestException('Already scratched today!');
+      }
+    }
+
+    // Scratch Logic
+    const rewards = [
+      { label: '100 Points', value: 100, prob: 0.05 },
+      { label: '50 Points', value: 50, prob: 0.1 },
+      { label: '20 Points', value: 20, prob: 0.2 },
+      { label: '10 Points', value: 10, prob: 0.3 },
+      { label: 'Better luck next time', value: 0, prob: 0.35 },
+    ];
+
+    const rand = Math.random();
+    let cumulative = 0;
+    let selectedReward = rewards[rewards.length - 1];
+
+    for (const reward of rewards) {
+      cumulative += reward.prob;
+      if (rand <= cumulative) {
+        selectedReward = reward;
+        break;
+      }
+    }
+
+    profile.lastScratchDate = now;
+    if (selectedReward.value > 0) {
+      profile.lifetimePoints =
+        (profile.lifetimePoints || 0) + selectedReward.value;
+      await this.loyaltyService.addPoints(
+        userId,
+        selectedReward.value,
+        `Scratch Card Reward`,
+      );
+
+      await this.logActivity(
+        userId,
+        'scratched',
+        `${selectedReward.value} Points`,
+        'SCRATCH',
+      );
+    }
+    await profile.save();
+
+    return {
+      result: selectedReward,
+      profile,
+    };
+  }
+
   async getLeaderboard() {
-    // Return top 10 users by lifetimePoints or just sync with Loyalty points
-    // Since we just started tracking lifetimePoints in this module, it might be 0 for old users.
-    // Better to query the User model directly via LoyaltyService or if we sync them.
-    // For now, let's query the GamificationProfile, assuming active users will generate data.
     return this.gamificationModel
       .find()
       .sort({ lifetimePoints: -1 })
       .limit(10)
-      .populate('user', 'firstName lastName avatar')
+      .populate('user', 'name avatar')
       .exec();
+  }
+
+  async logActivity(
+    userId: string,
+    action: string,
+    details: string,
+    type: string,
+  ) {
+    try {
+      await this.activityModel.create({
+        user: userId,
+        action,
+        details,
+        type,
+      });
+    } catch (error) {
+      console.error('Error logging gamification activity:', error);
+    }
+  }
+
+  async getRecentActivities() {
+    const activities = await this.activityModel
+      .find()
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate('user', 'name avatar')
+      .exec();
+
+    // Format for frontend
+    return activities.map((activity) => {
+      let userName = 'Unknown';
+      if (activity.user && (activity.user as any).name) {
+        const nameParts = (activity.user as any).name.split(' ');
+        userName = nameParts.length > 1
+          ? `${nameParts[0]} ${nameParts[1].charAt(0)}.`
+          : nameParts[0];
+      }
+
+      return {
+        user: userName,
+        action: activity.action,
+        reward: activity.details,
+        time: activity.createdAt,
+      };
+    });
   }
 }

@@ -15,10 +15,10 @@ export class GamificationProfile {
   user: User;
 
   @Prop({ default: 0 })
-  points: number; // Cache of loyalty points for leaderboard purposes (or robust sync)
+  points: number; 
 
   @Prop({ default: 0 })
-  lifetimePoints: number; // Total points ever earned (good for leaderboard)
+  lifetimePoints: number; 
 
   @Prop({ default: 0 })
   currentStreak: number;
@@ -31,7 +31,9 @@ export class GamificationProfile {
 
   @Prop()
   lastSpinDate: Date;
+
+  @Prop()
+  lastScratchDate: Date;
 }
 
-export const GamificationProfileSchema =
-  SchemaFactory.createForClass(GamificationProfile);
+export const GamificationProfileSchema = SchemaFactory.createForClass(GamificationProfile);

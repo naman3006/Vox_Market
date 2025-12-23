@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { updateProfile, uploadAvatar, deleteAccount, getProfile } from '../store/slices/authSlice';
 import { toast } from 'react-toastify';
 import api from '../store/api/api';
+import UserActivityLog from '../components/profile/UserActivityLog';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -365,7 +366,13 @@ const Profile = () => {
 
                 </div>
               </div>
+
+              {/* Activity Log */}
+              <div className="lg:col-span-3">
+                <UserActivityLog />
+              </div>
             </div>
+
           ) : (
             <div className="max-w-2xl mx-auto mt-12 animate-fade-in">
               <form onSubmit={handleSubmit} className="space-y-8">
@@ -469,128 +476,132 @@ const Profile = () => {
         </div>
       </div>
 
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 animate-scale-up border border-gray-100">
-            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center">Delete Account?</h3>
-            <p className="text-gray-500 mb-8 text-center leading-relaxed">
-              This will permanently delete your account, orders, and preferences. To confirm, please enter your password below.
-            </p>
-
-            <input
-              type="password"
-              value={deletePassword}
-              onChange={(e) => setDeletePassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full px-5 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none mb-6 transition-all"
-              autoFocus
-            />
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeletePassword('');
-                }}
-                className="flex-1 px-5 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  if (!deletePassword) {
-                    toast.error('Password is required');
-                    return;
-                  }
-                  try {
-                    await dispatch(deleteAccount({
-                      id: user._id || user.id,
-                      password: deletePassword
-                    })).unwrap();
-                    toast.info('Account deleted');
-                  } catch (err) {
-                    toast.error(err.message || 'Failed to delete account');
-                  }
-                }}
-                disabled={loading}
-                className="flex-1 px-5 py-3 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50"
-              >
-                {loading ? 'Deleting...' : 'Delete It'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showTwoFactorSetup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 animate-scale-up border border-gray-100 text-center">
-            <h3 className="text-xl font-bold mb-4">Setup 2FA</h3>
-            <p className="text-sm text-gray-500 mb-4">Scan the QR code with Google Authenticator</p>
-            {/* QR Code */}
-            {qrCodeUrl && <img src={qrCodeUrl} alt="QR Code" className="mx-auto mb-4 w-48 h-48" />}
-
-            {/* Links Block */}
-            {otpauthUrl && (
-              <a
-                href={otpauthUrl}
-                className="inline-block px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-bold text-sm transition-colors border border-blue-200"
-              >
-                Open in Authenticator App ↗
-              </a>
-            )}
-
-            {secret && (
-              <div className="mb-6 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide font-bold">Manual Entry Secret</p>
-                <p className="font-mono text-sm font-bold text-gray-700 break-all select-all">{secret}</p>
+      {
+        showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 animate-scale-up border border-gray-100">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
               </div>
-            )}
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center">Delete Account?</h3>
+              <p className="text-gray-500 mb-8 text-center leading-relaxed">
+                This will permanently delete your account, orders, and preferences. To confirm, please enter your password below.
+              </p>
 
-            <input
-              type="text"
-              value={twoFactorCode}
-              onChange={(e) => setTwoFactorCode(e.target.value)}
-              placeholder="Enter 6-digit code"
-              className="w-full px-4 py-2 border rounded-lg mb-4 text-center tracking-widest"
-              maxLength={6}
-            />
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full px-5 py-3.5 rounded-xl border border-gray-200 focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none mb-6 transition-all"
+                autoFocus
+              />
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowTwoFactorSetup(false)}
-                className="flex-1 py-2 bg-gray-100 rounded-lg font-bold text-gray-600"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleVerify2FA}
-                className="flex-1 py-2 bg-indigo-600 text-white rounded-lg font-bold"
-              >
-                Verify
-              </button>
-            </div>
-
-            {/* Debug Link Moved Here */}
-            {debugUrl && (
-              <div className="mt-4">
-                <a
-                  href={debugUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 font-bold text-sm transition-colors border border-purple-200"
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeletePassword('');
+                  }}
+                  className="flex-1 px-5 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
-                  View 2FA Code on Ethereal Email ↗
-                </a>
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!deletePassword) {
+                      toast.error('Password is required');
+                      return;
+                    }
+                    try {
+                      await dispatch(deleteAccount({
+                        id: user._id || user.id,
+                        password: deletePassword
+                      })).unwrap();
+                      toast.info('Account deleted');
+                    } catch (err) {
+                      toast.error(err.message || 'Failed to delete account');
+                    }
+                  }}
+                  disabled={loading}
+                  className="flex-1 px-5 py-3 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50"
+                >
+                  {loading ? 'Deleting...' : 'Delete It'}
+                </button>
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+
+      {
+        showTwoFactorSetup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 animate-scale-up border border-gray-100 text-center">
+              <h3 className="text-xl font-bold mb-4">Setup 2FA</h3>
+              <p className="text-sm text-gray-500 mb-4">Scan the QR code with Google Authenticator</p>
+              {/* QR Code */}
+              {qrCodeUrl && <img src={qrCodeUrl} alt="QR Code" className="mx-auto mb-4 w-48 h-48" />}
+
+              {/* Links Block */}
+              {otpauthUrl && (
+                <a
+                  href={otpauthUrl}
+                  className="inline-block px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-bold text-sm transition-colors border border-blue-200"
+                >
+                  Open in Authenticator App ↗
+                </a>
+              )}
+
+              {secret && (
+                <div className="mb-6 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide font-bold">Manual Entry Secret</p>
+                  <p className="font-mono text-sm font-bold text-gray-700 break-all select-all">{secret}</p>
+                </div>
+              )}
+
+              <input
+                type="text"
+                value={twoFactorCode}
+                onChange={(e) => setTwoFactorCode(e.target.value)}
+                placeholder="Enter 6-digit code"
+                className="w-full px-4 py-2 border rounded-lg mb-4 text-center tracking-widest"
+                maxLength={6}
+              />
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowTwoFactorSetup(false)}
+                  className="flex-1 py-2 bg-gray-100 rounded-lg font-bold text-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleVerify2FA}
+                  className="flex-1 py-2 bg-indigo-600 text-white rounded-lg font-bold"
+                >
+                  Verify
+                </button>
+              </div>
+
+              {/* Debug Link Moved Here */}
+              {debugUrl && (
+                <div className="mt-4">
+                  <a
+                    href={debugUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 font-bold text-sm transition-colors border border-purple-200"
+                  >
+                    View 2FA Code on Ethereal Email ↗
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 };
 

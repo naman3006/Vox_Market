@@ -152,6 +152,19 @@ export const switchUser = createAsyncThunk(
   async (email) => email
 );
 
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      // Even if API fails, we proceed to logout locally
+      console.error("Logout API failed", err);
+    }
+    return;
+  }
+);
+
 
 const active = getActive();
 
@@ -170,17 +183,8 @@ const authSlice = createSlice({
   initialState,
 
   reducers: {
-    logout: (state) => {
-      delete state.users[state.activeEmail];
-      saveUsers(state.users);
-
-      state.user = null;
-      state.token = null;
-      state.activeEmail = null;
-
-      sessionStorage.removeItem(STORAGE_ACTIVE);
-      state.isAuthenticated = false;
-    },
+    // Reducer removal: We will replace this with async thunk handling
+    // logout: (state) => ... removed from here
   },
 
   extraReducers: (builder) => {
@@ -329,13 +333,26 @@ const authSlice = createSlice({
       .addCase(deleteAccount.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      // LOGOUT
+      .addCase(logout.fulfilled, (state) => {
+        if (state.activeEmail) {
+          delete state.users[state.activeEmail];
+          saveUsers(state.users);
+        }
+        state.user = null;
+        state.token = null;
+        state.activeEmail = null;
+        sessionStorage.removeItem(STORAGE_ACTIVE);
+        state.isAuthenticated = false;
       });
 
   },
 });
 
 // ------------------------------------------------------
-export const { logout } = authSlice.actions;
+export const { } = authSlice.actions;
 
 export const selectUser = (s) => s.auth.user;
 export const selectToken = (s) => s.auth.token;

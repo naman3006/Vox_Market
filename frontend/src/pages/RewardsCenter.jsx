@@ -9,6 +9,9 @@ import Leaderboard from '../components/gamification/Leaderboard';
 import { getGamificationProfile } from '../store/slices/gamificationSlice';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import ScratchCard from '../components/gamification/ScratchCard';
+import ReferralCard from '../components/gamification/ReferralCard';
+import RecentActivity from '../components/gamification/RecentActivity';
 
 const SkeletonCard = () => (
     <div className="bg-white rounded-2xl shadow-soft border border-gray-100 overflow-hidden h-full animate-pulse">
@@ -30,6 +33,8 @@ const RewardsCenter = () => {
     const dispatch = useDispatch();
     const { user } = useSelector(state => state.auth);
     const [coupons, setCoupons] = useState([]);
+    const [myCoupons, setMyCoupons] = useState([]);
+    const [activeTab, setActiveTab] = useState('redeem'); // 'redeem' or 'my-coupons'
     const [loading, setLoading] = useState(true);
     const [redeeming, setRedeeming] = useState(null);
     const [redeemedCode, setRedeemedCode] = useState(null);
@@ -38,8 +43,10 @@ const RewardsCenter = () => {
         const init = async () => {
             await Promise.all([
                 fetchRewards(),
+                fetchMyCoupons(),
                 dispatch(getGamificationProfile())
             ]);
+            setLoading(false);
         };
         init();
     }, [dispatch]);
@@ -52,9 +59,15 @@ const RewardsCenter = () => {
             setCoupons(redeemable);
         } catch (err) {
             console.error(err);
-            // Silent fail for smoother UX, component handles empty state
-        } finally {
-            setLoading(false);
+        }
+    };
+
+    const fetchMyCoupons = async () => {
+        try {
+            const res = await api.get('/coupons/my-coupons');
+            setMyCoupons(res.data.data || res.data || []);
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -74,6 +87,9 @@ const RewardsCenter = () => {
             setRedeemedCode({ id: couponId, code: code });
             toast.success('Coupon redeemed successfully!');
             dispatch(getProfile());
+            fetchMyCoupons();
+            // Optional: Switch to my coupons tab after short delay
+            // setTimeout(() => setActiveTab('my-coupons'), 2000);
 
             // Celebration!
             confetti({
@@ -121,6 +137,7 @@ const RewardsCenter = () => {
             variants={containerVariants}
             className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
         >
+            <RecentActivity />
             <motion.div variants={itemVariants} className="text-center mb-12">
                 <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 font-display tracking-tight mb-4">
                     Rewards Center
@@ -147,104 +164,143 @@ const RewardsCenter = () => {
                 </motion.div>
             </motion.div>
 
+
             {/* Gamification Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-                <motion.div variants={itemVariants} className="lg:col-span-1 h-full">
+                <motion.div variants={itemVariants} className="lg:col-span-1 h-full flex flex-col gap-8">
                     <DailyStreak />
+                    <ScratchCard />
                 </motion.div>
+
                 <motion.div variants={itemVariants} className="lg:col-span-1 h-full">
                     <SpinWheel />
                 </motion.div>
-                <motion.div variants={itemVariants} className="lg:col-span-1 h-full">
+
+                <motion.div variants={itemVariants} className="lg:col-span-1 h-full flex flex-col gap-8">
                     <Leaderboard />
+                    <ReferralCard />
                 </motion.div>
             </div>
 
-            <motion.h2 variants={itemVariants} className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                <span className="bg-indigo-100 text-indigo-600 p-2 rounded-lg">🎟️</span>
-                Redeem Coupons
-            </motion.h2>
+            {/* TABS */}
+            <div className="flex gap-4 mb-8">
+                <button
+                    onClick={() => setActiveTab('redeem')}
+                    className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'redeem' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                >
+                    Redeem Points
+                </button>
+                <button
+                    onClick={() => setActiveTab('my-coupons')}
+                    className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'my-coupons' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                >
+                    My Rewards <span className="ml-2 bg-indigo-500 text-white text-xs py-0.5 px-2 rounded-full">{myCoupons.length}</span>
+                </button>
+            </div>
 
-            {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
-                </div>
-            ) : (
-                <AnimatePresence>
-                    {coupons.length === 0 ? (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-center py-20 bg-gray-50 rounded-3xl border border-gray-100 border-dashed"
-                        >
-                            <p className="text-gray-500 text-lg">No rewards available at the moment. Check back later!</p>
-                        </motion.div>
-                    ) : (
+            {activeTab === 'redeem' ? (
+                <>
+                    <motion.h2 variants={itemVariants} className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                        <span className="bg-indigo-100 text-indigo-600 p-2 rounded-lg">🎟️</span>
+                        Redeem Coupons
+                    </motion.h2>
+
+                    {loading ? (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {coupons.map(coupon => (
+                            {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
+                        </div>
+                    ) : (
+                        <AnimatePresence>
+                            {coupons.length === 0 ? (
                                 <motion.div
-                                    variants={itemVariants}
-                                    layout
-                                    key={coupon._id}
-                                    className="bg-white rounded-2xl shadow-soft border border-gray-100 overflow-hidden hover:shadow-2xl transition-all group relative flex flex-col h-full"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="text-center py-20 bg-gray-50 rounded-3xl border border-gray-100 border-dashed"
                                 >
-                                    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 flex flex-col items-center justify-center min-h-[180px] relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))] opacity-20"></div>
-                                        <div className="absolute top-0 right-0 p-4 opacity-10 transform group-hover:scale-110 transition-transform duration-500">
-                                            <svg className="w-32 h-32 text-indigo-900" fill="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
-                                        </div>
-                                        <h3 className="text-4xl font-black text-indigo-900 z-10 tracking-tight">
-                                            {coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : `$${coupon.discountValue}`}
-                                        </h3>
-                                        <p className="text-indigo-600 font-bold uppercase tracking-widest text-sm mt-1 z-10">OFF</p>
-                                    </div>
-
-                                    <div className="p-6 flex flex-col flex-grow">
-                                        <h4 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2" title={coupon.description}>{coupon.description}</h4>
-                                        <p className="text-gray-500 text-sm mb-4">Use code: <span className="font-mono bg-gray-100 px-2 py-1 rounded text-gray-700">{coupon.code.replace(/./g, '*')}</span></p>
-
-                                        <div className="mt-auto flex items-center justify-between">
-                                            <div className="text-sm font-medium">
-                                                <span className="block text-gray-400 text-xs uppercase">Cost</span>
-                                                <span className="text-indigo-600 font-bold text-lg">{coupon.costInPoints} pts</span>
+                                    <p className="text-gray-500 text-lg">No rewards available at the moment. Check back later!</p>
+                                </motion.div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                    {coupons.map(coupon => (
+                                        <motion.div
+                                            variants={itemVariants}
+                                            layout
+                                            key={coupon._id}
+                                            className="bg-white rounded-2xl shadow-soft border border-gray-100 overflow-hidden hover:shadow-2xl transition-all group relative flex flex-col h-full"
+                                        >
+                                            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 flex flex-col items-center justify-center min-h-[180px] relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))] opacity-20"></div>
+                                                <h3 className="text-4xl font-black text-indigo-900 z-10 tracking-tight">
+                                                    {coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : `$${coupon.discountValue}`}
+                                                </h3>
+                                                <p className="text-indigo-600 font-bold uppercase tracking-widest text-sm mt-1 z-10">OFF</p>
                                             </div>
 
-                                            {redeemedCode?.id === coupon._id ? (
-                                                <motion.button
-                                                    initial={{ scale: 0.8, opacity: 0 }}
-                                                    animate={{ scale: 1, opacity: 1 }}
-                                                    onClick={() => copyToClipboard(redeemedCode.code)}
-                                                    className="px-6 py-2 bg-green-100 text-green-700 rounded-xl font-bold text-sm hover:bg-green-200 transition-colors flex items-center gap-2"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                                                    {redeemedCode.code}
-                                                </motion.button>
-                                            ) : (
-                                                <motion.button
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    onClick={() => handleRedeem(coupon._id, coupon.costInPoints)}
-                                                    disabled={user?.loyaltyPoints < coupon.costInPoints || redeeming === coupon._id}
-                                                    className={`px-6 py-3 rounded-xl font-bold text-sm shadow-lg transition-all ${user?.loyaltyPoints >= coupon.costInPoints
-                                                        ? 'bg-gray-900 text-white hover:bg-indigo-600 hover:shadow-indigo-200'
-                                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-                                                        }`}
-                                                >
-                                                    {redeeming === coupon._id ? (
-                                                        <span className="flex items-center gap-2">
-                                                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                                            Processing
-                                                        </span>
-                                                    ) : 'Redeem'}
-                                                </motion.button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
+                                            <div className="p-6 flex flex-col flex-grow">
+                                                <h4 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2" title={coupon.description}>{coupon.description}</h4>
+                                                <div className="mt-auto flex items-center justify-between">
+                                                    <div className="text-sm font-medium">
+                                                        <span className="block text-gray-400 text-xs uppercase">Cost</span>
+                                                        <span className="text-indigo-600 font-bold text-lg">{coupon.costInPoints} pts</span>
+                                                    </div>
+
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        onClick={() => handleRedeem(coupon._id, coupon.costInPoints)}
+                                                        disabled={user?.loyaltyPoints < coupon.costInPoints || redeeming === coupon._id}
+                                                        className={`px-6 py-3 rounded-xl font-bold text-sm shadow-lg transition-all ${user?.loyaltyPoints >= coupon.costInPoints
+                                                            ? 'bg-gray-900 text-white hover:bg-indigo-600 hover:shadow-indigo-200'
+                                                            : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                                                            }`}
+                                                    >
+                                                        {redeeming === coupon._id ? 'Processing...' : 'Redeem'}
+                                                    </motion.button>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            )}
+                        </AnimatePresence>
                     )}
-                </AnimatePresence>
+                </>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {myCoupons.length === 0 ? (
+                        <div className="col-span-full text-center py-20 bg-gray-50 rounded-3xl border border-gray-100 border-dashed">
+                            <p className="text-gray-500 text-lg">You haven't redeemed any rewards yet.</p>
+                        </div>
+                    ) : (
+                        myCoupons.map(coupon => (
+                            <motion.div
+                                key={coupon._id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-white rounded-2xl border border-indigo-100 shadow-sm p-6 flex items-center justify-between group hover:shadow-md transition-all"
+                            >
+                                <div>
+                                    <h3 className="text-2xl font-black text-indigo-900">
+                                        {coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : `$${coupon.discountValue}`} OFF
+                                    </h3>
+                                    <p className="text-gray-600 text-sm mt-1">{coupon.description}</p>
+                                    <p className="text-xs text-gray-400 mt-2">Expires: {new Date(coupon.validUntil).toLocaleDateString()}</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="bg-gray-100 px-4 py-2 rounded-lg font-mono text-lg font-bold text-gray-800 tracking-wider mb-2 select-all">
+                                        {coupon.code}
+                                    </div>
+                                    <button
+                                        onClick={() => copyToClipboard(coupon.code)}
+                                        className="text-indigo-600 text-sm font-bold hover:text-indigo-800"
+                                    >
+                                        Copy Code
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ))
+                    )}
+                </div>
             )}
         </motion.div>
     );

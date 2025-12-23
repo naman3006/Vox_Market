@@ -8,14 +8,16 @@ import { Model, Types } from 'mongoose';
 import { User, UserDocument, LoyaltyTier } from '../auth/schemas/user.schema';
 import { Coupon, CouponDocument } from '../coupons/schemas/coupon.schema';
 import { NotificationsService } from '../notifications/notifications.service';
+import { GamificationProfile, GamificationProfileDocument } from '../gamification/schemas/gamification-profile.schema';
 
 @Injectable()
 export class LoyaltyService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Coupon.name) private couponModel: Model<CouponDocument>,
+    @InjectModel(GamificationProfile.name) private gamificationModel: Model<GamificationProfileDocument>,
     private notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   // Calculate points based on order amount and user tier
   calculatePoints(amount: number, tier: LoyaltyTier): number {
@@ -50,12 +52,9 @@ export class LoyaltyService {
     return user.save();
   }
 
-  async addPoints(userId: string, amount: number, reason?: string) {
-    // Direct addition without tier multiplier logic if it's a "reward" rather than "purchase"?
-    // Usually "awardPoints" applies the tier multiplier (1.2x etc).
-    // For a spin wheel, 50 points should be 50 points.
-    // So I should implement a raw 'addPoints' that doesn't use calculatePoints.
 
+
+  async addPoints(userId: string, amount: number, reason?: string) {
     const user = await this.userModel.findById(userId);
     if (!user) throw new NotFoundException('User not found');
 
@@ -63,6 +62,18 @@ export class LoyaltyService {
     user.totalPointsEarned += amount;
 
     await this.checkAndUpgradeTier(user);
+    await user.save();
+
+    // SYNC with Gamification Profile
+    try {
+      await this.gamificationModel.findOneAndUpdate(
+        { user: userId },
+        { $inc: { points: amount, lifetimePoints: amount } },
+        { upsert: true }
+      );
+    } catch (err) {
+      console.error("Failed to sync gamification profile", err);
+    }
 
     if (reason) {
       try {
@@ -76,7 +87,7 @@ export class LoyaltyService {
       }
     }
 
-    return user.save();
+    return user;
   }
 
   // Check if user qualifies for a tier upgrade
@@ -157,28 +168,61 @@ export class LoyaltyService {
 
     // Deduct points
     user.loyaltyPoints -= coupon.costInPoints;
-
-    // Add user to coupon's applicable users if restricted, or otherwise ensure they can use it.
-    // However, usually "redeeming" means *generating* a unique code or assigning this coupon to the user.
-    // For simplicity, we'll assume we are giving them access to this specific coupon ID and maybe incrementing a "redeemed" counter or creating a user-coupon record.
-    // Given the current Coupon schema, we can add the user to `applicableUsers` if it's currently restricted, OR specific to this feature, maybe we just assume they cope the code.
-    // But to make it "real", let's assume this unlocks the coupon usage.
-
-    // A better approach for "Redemption" is usually cloning the coupon or having a "UserCoupons" collection.
-    // Since we don't have that in the plan, I will assume we are just checking checks.
-    // But wait, if I spend points, I expect to maximize the usage.
+    user.totalPointsEarned = user.totalPointsEarned; // No change to total earned
 
     await user.save();
 
-    // Logic: If the coupon relies on `applicableUsers` being empty for "everyone", adding a user to it might restricting it to ONLY that user.
-    // So we should strictly check how `applicableUsers` is used.
-    // Inspecting schema: `applicableUsers: Types.ObjectId[]; // Empty = all users`
-    // If it's a "Reward Coupon", it likely starts as "No one" (maybe `isActive: false`? No). or maybe we create a NEW one.
-    // Let's assume there are "Public Reward Coupons" that just require points to "unlock".
-    // But how do we track "Unlocked"?
-    // Simplest MVP: Deduct points, return the Coupon Code to the frontend.
-    // Ideally, we'd log this transaction.
+    // Sync Game Profile
+    try {
+      await this.gamificationModel.findOneAndUpdate(
+        { user: userId },
+        { $inc: { points: -coupon.costInPoints } }
+      );
+    } catch (e) {
+      console.error('Failed to sync game profile on redeem', e);
+    }
 
-    return { user, coupon };
+    // CREATE UNIQUE COUPON FOR USER
+    // Format: CODE-USERI-RAND
+    const uniqueSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const userSuffix = userId.substring(userId.length - 4).toUpperCase();
+    const newCode = `${coupon.code}-${userSuffix}${uniqueSuffix}`;
+
+    const newCoupon = new this.couponModel({
+      code: newCode,
+      description: coupon.description,
+      discountType: coupon.discountType,
+      discountValue: coupon.discountValue,
+      costInPoints: 0, // Already paid
+      minPurchaseAmount: coupon.minPurchaseAmount,
+      maxDiscountAmount: coupon.maxDiscountAmount,
+      validFrom: new Date(),
+      validUntil: coupon.validUntil, // Or extend? Let's keep original validity or give 30 days
+      usageLimit: 1,
+      usageLimitPerUser: 1,
+      usedCount: 0,
+      applicableUsers: [new Types.ObjectId(userId)], // Locked to this user
+      applicableCategories: coupon.applicableCategories,
+      applicableProducts: coupon.applicableProducts,
+      status: 'active',
+      isActive: true,
+      createdBy: coupon.createdBy,
+      notes: `Redeemed with points from ${coupon.code}`
+    });
+
+    await newCoupon.save();
+
+    // Notify User
+    try {
+      await this.notificationsService.create(
+        userId,
+        `You redeemed ${coupon.description}! Your code is ${newCode}`,
+        'system',
+      );
+    } catch (e) {
+      console.error(e);
+    }
+
+    return { user, coupon: newCoupon };
   }
 }

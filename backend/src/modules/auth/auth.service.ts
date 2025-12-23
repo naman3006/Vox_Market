@@ -19,6 +19,8 @@ import { User, UserDocument } from './schemas/user.schema';
 import { User as UserInterface } from '../../common/interfaces/user.interface';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { MailService } from '../mail/mail.service';
+import { LoyaltyService } from '../loyalty/loyalty.service';
+import { UserActivityService } from '../user-activity/user-activity.service';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +34,9 @@ export class AuthService {
     private jwtService: JwtService,
     private mailService: MailService,
     private readonly twoFactorAuthenticationService: TwoFactorAuthenticationService,
-  ) {}
+    private readonly loyaltyService: LoyaltyService,
+    private readonly userActivityService: UserActivityService,
+  ) { }
 
   async register(
     registerDto: RegisterDto,
@@ -57,6 +61,35 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(password, this.SALT_ROUNDS);
 
     try {
+      // Generate unique referral code
+      const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      let referredBy = null;
+
+      // Handle Referral
+      if (registerDto.referralCode) {
+        const referrer = await this.userModel.findOne({
+          referralCode: registerDto.referralCode,
+        });
+
+        if (referrer) {
+          referredBy = referrer._id;
+
+          // Award Referrer Bonus (Await to ensure completion)
+          try {
+            await this.loyaltyService.addPoints(
+              referrer._id.toString(),
+              500,
+              `Referral Bonus: ${name}`,
+            );
+            this.logger.log(`Awarded 500 points to referrer ${referrer._id}`);
+          } catch (err) {
+            this.logger.error(`Failed to award referral bonus: ${err.message}`);
+          }
+        } else {
+          this.logger.warn(`Referral code not found: ${registerDto.referralCode}`);
+        }
+      }
+
       const userDoc = new this.userModel({
         email: email.toLowerCase(),
         password: hashedPassword,
@@ -64,8 +97,19 @@ export class AuthService {
         role: UserRole.user,
         loginAttempts: 0,
         lockUntil: null,
+        referralCode,
+        referredBy,
       });
       await userDoc.save();
+
+      // Award New User Welcome Bonus
+      if (referredBy) {
+        this.loyaltyService
+          .addPoints(userDoc._id.toString(), 100, 'Welcome Bonus (Referred)')
+          .catch((err) =>
+            this.logger.error(`Failed to award welcome bonus: ${err.message}`),
+          );
+      }
 
       const token = this.generateToken(
         userDoc._id.toString(),
@@ -75,6 +119,14 @@ export class AuthService {
       const userResponse = this.sanitizeUser(userDoc);
 
       this.logger.log(`User registered successfully: ${email}`);
+
+      // Log Activity
+      await this.userActivityService.logActivity(
+        userDoc._id.toString(),
+        'REGISTER',
+        'User registered successfully',
+      );
+
       return { user: userResponse, token };
     } catch (error) {
       this.logger.error(`Registration error: ${error.message}`);
@@ -132,6 +184,13 @@ export class AuthService {
       await userDoc.save();
     }
 
+    // Lazy Migration: Generate referral code if missing
+    if (!userDoc.referralCode) {
+      userDoc.referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      await userDoc.save();
+      this.logger.log(`Generated missing referral code for user ${email}`);
+    }
+
     if (userDoc.isTwoFactorEnabled) {
       // Generate and log the token for testing login
       const token = speakeasy.totp({
@@ -172,7 +231,22 @@ export class AuthService {
     const userResponse = this.sanitizeUser(userDoc);
 
     this.logger.log(`User logged in successfully: ${email}`);
+
+    await this.userActivityService.logActivity(
+      userDoc._id.toString(),
+      'LOGIN',
+      'User logged in',
+    );
+
     return { user: userResponse, token };
+  }
+
+  async logout(userId: string): Promise<void> {
+    await this.userActivityService.logActivity(
+      userId,
+      'LOGOUT',
+      'User logged out',
+    );
   }
 
   private generateToken(userId: string, email: string, role: UserRole): string {
@@ -192,6 +266,7 @@ export class AuthService {
       role: userDoc.role,
       name: userDoc.name,
       isTwoFactorEnabled: userDoc.isTwoFactorEnabled,
+      referralCode: userDoc.referralCode,
     };
   }
 

@@ -26,6 +26,7 @@ import { QuestionsModule } from './modules/questions/questions.module';
 import { SocialProofModule } from './modules/social-proof/social-proof.module';
 import { CoBrowsingModule } from './modules/co-browsing/co-browsing.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
+import { UserActivityModule } from './modules/user-activity/user-activity.module';
 
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
@@ -87,8 +88,9 @@ console.log('Resolving i18n Path:', i18nPath);
     SocialProofModule,
     CoBrowsingModule,
     GamificationModule,
+    UserActivityModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

@@ -42,14 +42,14 @@ const Leaderboard = () => {
                                 <div
                                     key={entry._id}
                                     className={`flex items-center gap-4 p-4 rounded-2xl transition-all transform hover:scale-[1.02] ${isMe
-                                            ? 'bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 shadow-sm'
-                                            : 'bg-white hover:bg-gray-50 border border-gray-100'
+                                        ? 'bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 shadow-sm'
+                                        : 'bg-white hover:bg-gray-50 border border-gray-100'
                                         }`}
                                 >
                                     <div className={`w-10 h-10 flex items-center justify-center font-bold rounded-xl text-sm shadow-sm ${index === 0 ? 'bg-gradient-to-br from-yellow-300 to-yellow-500 text-white ring-2 ring-yellow-200' :
-                                            index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
-                                                index === 2 ? 'bg-gradient-to-br from-orange-300 to-orange-400 text-white' :
-                                                    'bg-gray-100 text-gray-500'
+                                        index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                                            index === 2 ? 'bg-gradient-to-br from-orange-300 to-orange-400 text-white' :
+                                                'bg-gray-100 text-gray-500'
                                         }`}>
                                         {index === 0 ? '👑' : `#${index + 1}`}
                                     </div>
@@ -60,7 +60,7 @@ const Leaderboard = () => {
                                                 <img src={entry.user.avatar} alt="" className="w-full h-full object-cover rounded-full" />
                                             ) : (
                                                 <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 font-bold text-lg">
-                                                    {entry.user.firstName?.[0] || 'U'}
+                                                    {entry.user.name?.[0] || 'U'}
                                                 </div>
                                             )}
                                         </div>
@@ -73,7 +73,7 @@ const Leaderboard = () => {
 
                                     <div className="flex-1 min-w-0">
                                         <p className={`font-bold truncate ${isMe ? 'text-indigo-900' : 'text-gray-800'}`}>
-                                            {entry.user.firstName} {entry.user.lastName}
+                                            {entry.user.name}
                                         </p>
                                         {isMe && <span className="text-[10px] uppercase font-bold text-indigo-500 tracking-wider">You</span>}
                                     </div>

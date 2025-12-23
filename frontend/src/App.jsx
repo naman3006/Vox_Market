@@ -39,6 +39,7 @@ const WishlistDetail = lazy(() => import("./pages/WishlistDetail"));
 const SharedWishlist = lazy(() => import("./pages/SharedWishlist"));
 import { getProfile } from "./store/slices/authSlice";
 import { findWishlist } from "./store/slices/wishlistSlice";
+import { getGamificationProfile } from "./store/slices/gamificationSlice";
 
 // import { io } from "socket.io-client"; // Removed, using Context
 import { useSocket } from "./contexts/SocketContext";
@@ -115,6 +116,12 @@ const App = () => {
         // The notification object is sent directly, not wrapped in a payload property
         dispatch(addNotification(notification));
         toast.info(notification.message || "New notification");
+
+        // Real-time update for points/rewards
+        if (notification.message && (notification.message.includes('points') || notification.message.includes('Tier') || notification.type === 'POINTS_UPDATED')) {
+          dispatch(getProfile());
+          dispatch(getGamificationProfile());
+        }
       };
 
       socket.on("notification", handleNotification);

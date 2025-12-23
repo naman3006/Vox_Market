@@ -24,7 +24,7 @@ export class CouponsService {
     @InjectModel(Coupon.name) private couponModel: Model<CouponDocument>,
     private notificationsService: NotificationsService,
     private usersService: UsersService,
-  ) {}
+  ) { }
 
   async create(
     createCouponDto: CreateCouponDto,
@@ -393,6 +393,21 @@ export class CouponsService {
         ],
       })
       .select('-usedBy -createdBy')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async findMyCoupons(userId: string): Promise<CouponDocument[]> {
+    const now = new Date();
+    return this.couponModel
+      .find({
+        applicableUsers: new Types.ObjectId(userId), // Checks if userId is in the array
+        validUntil: { $gte: now },
+        status: { $ne: CouponStatus.EXPIRED },
+        // Optionally only unused ones?
+        // usedCount: { $lt: 1 } (since unique coupons are usageLimit: 1)
+        $expr: { $lt: ['$usedCount', '$usageLimit'] }, // Safer check
+      })
       .sort({ createdAt: -1 })
       .exec();
   }

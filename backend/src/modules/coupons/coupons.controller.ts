@@ -24,7 +24,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 
 @Controller('coupons')
 export class CouponsController {
-  constructor(private readonly couponsService: CouponsService) {}
+  constructor(private readonly couponsService: CouponsService) { }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -53,6 +53,12 @@ export class CouponsController {
   @Get('active')
   getActiveCoupons() {
     return this.couponsService.getActiveCoupons();
+  }
+
+  @Get('my-coupons')
+  @UseGuards(JwtAuthGuard)
+  getMyCoupons(@Request() req) {
+    return this.couponsService.findMyCoupons(req.user.userId);
   }
 
   @Get(':id')

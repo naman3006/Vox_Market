@@ -2,13 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, FilterQuery } from 'mongoose';
 import { Wishlist, WishlistDocument } from './schemas/wishlist.schema';
+import { UserActivityService } from '../user-activity/user-activity.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class WishlistService {
   constructor(
     @InjectModel(Wishlist.name) private wishlistModel: Model<WishlistDocument>,
-  ) {}
+    private readonly userActivityService: UserActivityService,
+  ) { }
 
   async findAll(userId: string): Promise<WishlistDocument[]> {
     return this.wishlistModel
@@ -109,6 +111,16 @@ export class WishlistService {
     console.log(
       `[WishlistService.add] Success. Product count: ${updatedWishlist.items.length}`,
     );
+
+    // Log User Activity
+    await this.userActivityService.logActivity(
+      userId,
+      'WISHLIST_ADD',
+      `Added product ${productId} to wishlist`,
+      null,
+      { wishlistId: targetId, productId }
+    );
+
     return updatedWishlist;
   }
 
@@ -134,6 +146,15 @@ export class WishlistService {
     if (!updatedWishlist) {
       throw new NotFoundException('Wishlist not found');
     }
+
+    // Log User Activity
+    await this.userActivityService.logActivity(
+      userId,
+      'WISHLIST_REMOVE',
+      `Removed product ${productId} from wishlist`,
+      null,
+      { wishlistId: updatedWishlist._id, productId }
+    );
 
     return updatedWishlist;
   }

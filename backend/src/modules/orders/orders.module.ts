@@ -12,6 +12,7 @@ import { MailModule } from '../mail/mail.module';
 import { CouponsModule } from '../coupons/coupons.module';
 import { LoyaltyModule } from '../loyalty/loyalty.module';
 import { SocialProofModule } from '../social-proof/social-proof.module';
+import { UserActivityModule } from '../user-activity/user-activity.module';
 
 @Module({
   imports: [
@@ -25,9 +26,10 @@ import { SocialProofModule } from '../social-proof/social-proof.module';
     CouponsModule,
     LoyaltyModule,
     SocialProofModule,
+    UserActivityModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersListener, OrderEventsListener],
   exports: [OrdersService],
 })
-export class OrdersModule {}
+export class OrdersModule { }

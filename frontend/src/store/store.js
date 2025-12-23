@@ -12,6 +12,7 @@ import reviewsSlice from './slices/reviewsSlice';
 import usersSlice from './slices/usersSlice';
 import wishlistSlice from './slices/wishlistSlice';
 import gamificationSlice from './slices/gamificationSlice';
+import activityLogSlice from './slices/activityLogSlice';
 
 
 export const store = configureStore({
@@ -29,5 +30,6 @@ export const store = configureStore({
     users: usersSlice,
     wishlist: wishlistSlice,
     gamification: gamificationSlice,
+    activityLog: activityLogSlice,
   },
 });

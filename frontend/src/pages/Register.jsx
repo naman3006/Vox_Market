@@ -1,7 +1,7 @@
 // src/pages/Register.js
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { register } from '../store/slices/authSlice';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
@@ -10,9 +10,15 @@ import { motion } from 'framer-motion';
 const Register = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const { loading, error } = useSelector((state) => state.auth);
-  const [registerData, setRegisterData] = useState({ name: '', email: '', password: '' });
+  const [registerData, setRegisterData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    referralCode: searchParams.get('ref') || ''
+  });
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -137,6 +143,25 @@ const Register = () => {
                   )}
                 </button>
               </div>
+
+              {/* Referral Code (Optional) */}
+              <div className="relative group">
+                <input
+                  type="text"
+                  value={registerData.referralCode || ''}
+                  onChange={(e) => setRegisterData({ ...registerData, referralCode: e.target.value.toUpperCase() })}
+                  className="block w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white/10 transition-all peer uppercase tracking-widest font-mono"
+                  placeholder="Referral Code (Optional)"
+                  id="referralCode"
+                  maxLength={8}
+                />
+                <label
+                  htmlFor="referralCode"
+                  className="absolute left-4 top-4 text-gray-400 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-focus:-top-2.5 peer-focus:text-indigo-300 peer-focus:text-xs peer-focus:bg-indigo-900/50 peer-focus:px-2 rounded peer-not-placeholder-shown:-top-2.5 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:bg-indigo-900/50 peer-not-placeholder-shown:px-2"
+                >
+                  Referral Code (Optional)
+                </label>
+              </div>
             </div>
 
             <div>
@@ -163,8 +188,8 @@ const Register = () => {
             </div>
           </form>
         </div>
-      </motion.div>
-    </div>
+      </motion.div >
+    </div >
   );
 };
 
