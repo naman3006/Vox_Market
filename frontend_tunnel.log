@@ -1,22 +1,22 @@
-2025-12-24T05:48:45Z INF Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
-2025-12-24T05:48:45Z INF Requesting new quick Tunnel on trycloudflare.com...
-2025-12-24T05:48:53Z INF +--------------------------------------------------------------------------------------------+
-2025-12-24T05:48:53Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
-2025-12-24T05:48:53Z INF |  https://comparative-dpi-boolean-pregnancy.trycloudflare.com                               |
-2025-12-24T05:48:53Z INF +--------------------------------------------------------------------------------------------+
-2025-12-24T05:48:53Z INF Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]
-2025-12-24T05:48:53Z INF Version 2025.11.1 (Checksum 991dffd8889ee9f0147b6b48933da9e4407e68ea8c6d984f55fa2d3db4bb431d)
-2025-12-24T05:48:53Z INF GOOS: linux, GOVersion: go1.24.9, GoArch: amd64
-2025-12-24T05:48:53Z INF Settings: map[ha-connections:1 no-autoupdate:true protocol:quic url:http://localhost:5173]
-2025-12-24T05:48:53Z INF Generated Connector ID: 32d113fa-3d48-43a7-b8bf-43c1fd1bacff
-2025-12-24T05:48:53Z INF Initial protocol quic
-2025-12-24T05:48:53Z INF ICMP proxy will use 192.168.1.192 as source for IPv4
-2025-12-24T05:48:53Z INF ICMP proxy will use fe80::f942:6cd2:2541:ce93 in zone enp1s0 as source for IPv6
-2025-12-24T05:48:55Z ERR Cannot determine default origin certificate path. No file cert.pem in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]. You need to specify the origin certificate path by specifying the origincert option in the configuration file, or set TUNNEL_ORIGIN_CERT environment variable originCertPath=
-2025-12-24T05:48:55Z INF ICMP proxy will use 192.168.1.192 as source for IPv4
-2025-12-24T05:48:55Z INF ICMP proxy will use fe80::f942:6cd2:2541:ce93 in zone enp1s0 as source for IPv6
-2025-12-24T05:48:55Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.23
-2025-12-24T05:48:55Z INF Starting metrics server on 127.0.0.1:20243/metrics
-2025/12/24 11:18:55 failed to sufficiently increase receive buffer size (was: 208 kiB, wanted: 7168 kiB, got: 416 kiB). See https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes for details.
-2025-12-24T05:48:56Z INF Registered tunnel connection connIndex=0 connection=9e93fba9-071c-4ac4-a00a-a9ea26c88e2d event=0 ip=198.41.200.23 location=bom11 protocol=quic
-2025-12-24T05:48:57Z INF Initiating graceful shutdown due to signal interrupt ...
+2025-12-24T09:52:20Z INF Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
+2025-12-24T09:52:20Z INF Requesting new quick Tunnel on trycloudflare.com...
+2025-12-24T09:52:28Z INF +--------------------------------------------------------------------------------------------+
+2025-12-24T09:52:28Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+2025-12-24T09:52:28Z INF |  https://saves-northern-modules-cylinder.trycloudflare.com                                 |
+2025-12-24T09:52:28Z INF +--------------------------------------------------------------------------------------------+
+2025-12-24T09:52:28Z INF Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]
+2025-12-24T09:52:28Z INF Version 2025.11.1 (Checksum 991dffd8889ee9f0147b6b48933da9e4407e68ea8c6d984f55fa2d3db4bb431d)
+2025-12-24T09:52:28Z INF GOOS: linux, GOVersion: go1.24.9, GoArch: amd64
+2025-12-24T09:52:28Z INF Settings: map[ha-connections:1 no-autoupdate:true protocol:quic url:http://localhost:5173]
+2025-12-24T09:52:28Z INF Generated Connector ID: ab9934fc-4f3a-4740-ae50-7660ffc3d1c9
+2025-12-24T09:52:28Z INF Initial protocol quic
+2025-12-24T09:52:28Z INF ICMP proxy will use 192.168.1.192 as source for IPv4
+2025-12-24T09:52:28Z INF ICMP proxy will use fe80::f942:6cd2:2541:ce93 in zone enp1s0 as source for IPv6
+2025-12-24T09:52:30Z ERR Cannot determine default origin certificate path. No file cert.pem in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]. You need to specify the origin certificate path by specifying the origincert option in the configuration file, or set TUNNEL_ORIGIN_CERT environment variable originCertPath=
+2025-12-24T09:52:30Z INF ICMP proxy will use 192.168.1.192 as source for IPv4
+2025-12-24T09:52:30Z INF ICMP proxy will use fe80::f942:6cd2:2541:ce93 in zone enp1s0 as source for IPv6
+2025-12-24T09:52:30Z INF Starting metrics server on 127.0.0.1:20243/metrics
+2025-12-24T09:52:30Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.13
+2025/12/24 15:22:30 failed to sufficiently increase receive buffer size (was: 208 kiB, wanted: 7168 kiB, got: 416 kiB). See https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes for details.
+2025-12-24T09:52:31Z INF Registered tunnel connection connIndex=0 connection=543818c5-8216-4d0f-93e7-5f155a3673e2 event=0 ip=198.41.200.13 location=bom12 protocol=quic
+2025-12-24T09:52:52Z INF Initiating graceful shutdown due to signal interrupt ...
