@@ -2,7 +2,7 @@ services:
   - type: web
     name: voxmarket-backend
     env: node
-    root: backend
+    rootDir: backend
     plan: free
     buildCommand: npm install && npm run build
     startCommand: npm run start:prod
@@ -16,9 +16,9 @@ services:
   - type: web
     name: voxmarket-frontend
     env: static
-    root: frontend
+    rootDir: frontend
     buildCommand: npm install && npm run build
-    publishDir: dist
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
