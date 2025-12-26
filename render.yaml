@@ -4,11 +4,11 @@ services:
     env: node
     rootDir: backend
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start:prod
     envVars:
-      - key: NODE_VERSION
-        value: 22.16.0
+      - key: NODE_ENV
+        value: production
       - key: NPM_CONFIG_PRODUCTION
         value: "false"
       - key: PORT
