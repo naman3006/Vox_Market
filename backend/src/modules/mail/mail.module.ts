@@ -15,8 +15,20 @@ import { MailService } from './mail.service';
         const mailUser = configService.get('MAIL_USER');
         let transportConfig: any;
 
-        // Prioritize Ethereal in Development to ensure Preview Links work
-        if (isDev) {
+        // Advanced Configuration: Check for explicit credentials first
+        if (mailUser && configService.get('MAIL_PASSWORD')) {
+          transportConfig = {
+            host: configService.get('MAIL_HOST', 'smtp.gmail.com'),
+            port: configService.get('MAIL_PORT', 587),
+            secure: false, // true for 465, false for 587
+            auth: {
+              user: mailUser,
+              pass: configService.get('MAIL_PASSWORD'),
+            },
+          };
+          console.log(`[MailModule] Using configured SMTP: ${mailUser}`);
+        } else if (isDev) {
+          // Fallback to Ethereal only if no credentials provided and in DEV
           try {
             const testAccount = await nodemailer.createTestAccount();
             transportConfig = {
@@ -29,34 +41,14 @@ import { MailService } from './mail.service';
               },
             };
             console.log(
-              '[MailModule] --------------------------------------------------',
+              '[MailModule] Using Ethereal Email (No credentials found in .env)',
             );
-            console.log(
-              '[MailModule] Using Ethereal Email for Development (Forced)',
-            );
-            console.log(`[MailModule] Account: ${testAccount.user}`);
-            console.log(
-              '[MailModule] --------------------------------------------------',
-            );
+            console.log(`[MailModule] Ethereal Account: ${testAccount.user}`);
           } catch (err) {
             console.error(
               '[MailModule] Failed to create Ethereal test account',
               err,
             );
-            console.warn(
-              '[MailModule] Falling back to environment configuration',
-            );
-
-            // Fallback to Env Config if Ethereal fails
-            transportConfig = {
-              host: configService.get('MAIL_HOST', 'smtp.gmail.com'),
-              port: configService.get('MAIL_PORT', 587),
-              secure: false,
-              auth: {
-                user: mailUser,
-                pass: configService.get('MAIL_PASSWORD'),
-              },
-            };
           }
         } else {
           // Production or Non-Dev: Use configured credentials
@@ -91,4 +83,4 @@ import { MailService } from './mail.service';
   exports: [MailerModule, MailService],
   providers: [MailService],
 })
-export class MailModule {}
+export class MailModule { }
