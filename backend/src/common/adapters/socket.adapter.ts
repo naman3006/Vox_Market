@@ -6,7 +6,9 @@ export class SocketAdapter extends IoAdapter {
         const server = super.createIOServer(port, {
             ...options,
             cors: {
-                origin: '*',
+                origin: (origin, callback) => {
+                    callback(null, true);
+                },
                 credentials: true,
             },
             // Allow both, though client forces websocket.

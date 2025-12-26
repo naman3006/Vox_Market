@@ -19,7 +19,7 @@ export function setupApp(app: NestExpressApplication) {
 
     // Enable CORS
     app.enableCors({
-        origin: '*',
+        origin: true,
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     });
