@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && mkdir -p dist/modules/mail && cp -r src/modules/mail/templates dist/modules/mail/ && cp -r src/i18n dist/",
+    "build": "rm -f tsconfig.tsbuildinfo && rm -rf dist && tsc -p tsconfig.build.json --incremental false && mkdir -p dist/modules/mail && cp -r src/modules/mail/templates dist/modules/mail/ && cp -r src/i18n dist/",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
