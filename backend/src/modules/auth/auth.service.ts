@@ -289,26 +289,28 @@ export class AuthService {
     user.resetPasswordAttempts = 0;
     await user.save();
 
-    // Fire and forget email sending to avoid timeout
-    this.mailService
-      .sendOtpEmail(user.email, otp)
-      .then((mailResult) => {
-        if (!mailResult.success) {
-          this.logger.error(`Failed to send OTP email to ${email}: ${mailResult.error}`);
-        } else {
-          this.logger.log(`OTP sent to ${email}`);
-        }
-      })
-      .catch((err) => {
-        this.logger.error(`Error sending OTP email: ${err.message}`);
-      });
+    // Force email sending to next tick to guarantee non-blocking response
+    setTimeout(() => {
+      this.mailService
+        .sendOtpEmail(user.email, otp)
+        .then((mailResult) => {
+          if (!mailResult.success) {
+            this.logger.error(`Failed to send OTP email to ${email}: ${mailResult.error}`);
+          } else {
+            this.logger.log(`OTP sent to ${email}`);
+          }
+        })
+        .catch((err) => {
+          this.logger.error(`Error sending OTP email: ${err.message}`);
+        });
+    }, 1);
 
-    this.logger.log(`OTP generated for ${email} (email sending in background)`);
+    this.logger.log(`OTP generated for ${email} (email scheduled non-blocking)`);
 
     return {
       success: true,
       message: 'If your email is registered, you will receive an OTP shortly.',
-      previewUrl: undefined, // Cannot provide preview URL in async mode
+      previewUrl: undefined,
     };
   }
 
