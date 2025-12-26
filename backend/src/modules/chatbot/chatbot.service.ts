@@ -216,7 +216,7 @@ export class ChatbotService {
       // Parallel context gathering could be faster, but sequential is safer for error isolation
 
       // Orders
-      if (lowerMsg.includes('order') || lowerMsg.includes('status')) {
+      if (userId && (lowerMsg.includes('order') || lowerMsg.includes('status'))) {
         const orders = await this.ordersService.findMy(userId);
         context +=
           orders.length > 0
@@ -225,7 +225,7 @@ export class ChatbotService {
       }
 
       // Cart
-      if (lowerMsg.includes('cart') || lowerMsg.includes('bag')) {
+      if (userId && (lowerMsg.includes('cart') || lowerMsg.includes('bag'))) {
         const cart = await this.cartService.findOne(userId);
         context +=
           cart && cart.items.length
@@ -234,7 +234,7 @@ export class ChatbotService {
       }
 
       // Wishlist
-      if (lowerMsg.includes('wishlist') || lowerMsg.includes('save')) {
+      if (userId && (lowerMsg.includes('wishlist') || lowerMsg.includes('save'))) {
         const wishlists = await this.wishlistService.findAll(userId);
         const w = wishlists[0];
         context +=
@@ -243,7 +243,7 @@ export class ChatbotService {
             : `\nWishlist is empty.`;
       }
 
-      // Coupons
+      // Coupons (Public)
       if (lowerMsg.includes('coupon') || lowerMsg.includes('code')) {
         const coupons = await this.couponsService.findAll({
           status: CouponStatus.ACTIVE,
