@@ -289,13 +289,26 @@ export class AuthService {
     user.resetPasswordAttempts = 0;
     await user.save();
 
-    const mailResult = await this.mailService.sendOtpEmail(user.email, otp);
-    this.logger.log(`OTP generated and sent for ${email}`);
+    // Fire and forget email sending to avoid timeout
+    this.mailService
+      .sendOtpEmail(user.email, otp)
+      .then((mailResult) => {
+        if (!mailResult.success) {
+          this.logger.error(`Failed to send OTP email to ${email}: ${mailResult.error}`);
+        } else {
+          this.logger.log(`OTP sent to ${email}`);
+        }
+      })
+      .catch((err) => {
+        this.logger.error(`Error sending OTP email: ${err.message}`);
+      });
+
+    this.logger.log(`OTP generated for ${email} (email sending in background)`);
 
     return {
       success: true,
       message: 'If your email is registered, you will receive an OTP shortly.',
-      previewUrl: mailResult.previewUrl,
+      previewUrl: undefined, // Cannot provide preview URL in async mode
     };
   }
 
