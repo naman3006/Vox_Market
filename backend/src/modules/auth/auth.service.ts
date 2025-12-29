@@ -291,18 +291,42 @@ export class AuthService {
 
     // Await email sending to return preview URL (for Ethereal/Dev)
     let previewUrl: string | undefined;
-    try {
-      const mailResult = await this.mailService.sendOtpEmail(user.email, otp);
-      if (!mailResult.success) {
-        this.logger.error(`Failed to send OTP email to ${email}: ${mailResult.error}`);
-      } else {
-        this.logger.log(`OTP sent to ${email}`);
-        if (mailResult.previewUrl) {
-          previewUrl = mailResult.previewUrl as string;
+
+    const sendEmailPromise = this.mailService.sendOtpEmail(user.email, otp);
+
+    if (process.env.NODE_ENV === 'production') {
+      // In production, don't wait for email sending to prevent timeouts
+      // We process it in background
+      sendEmailPromise
+        .then((mailResult) => {
+          if (!mailResult.success) {
+            this.logger.error(
+              `Failed to send OTP email to ${email}: ${mailResult.error}`,
+            );
+          } else {
+            this.logger.log(`OTP sent to ${email}`);
+          }
+        })
+        .catch((err) => {
+          this.logger.error(`Error sending OTP email: ${err.message}`);
+        });
+    } else {
+      // In development, we await to get the preview URL
+      try {
+        const mailResult = await sendEmailPromise;
+        if (!mailResult.success) {
+          this.logger.error(
+            `Failed to send OTP email to ${email}: ${mailResult.error}`,
+          );
+        } else {
+          this.logger.log(`OTP sent to ${email}`);
+          if (mailResult.previewUrl) {
+            previewUrl = mailResult.previewUrl as string;
+          }
         }
+      } catch (err) {
+        this.logger.error(`Error sending OTP email: ${err.message}`);
       }
-    } catch (err) {
-      this.logger.error(`Error sending OTP email: ${err.message}`);
     }
 
     this.logger.log(`OTP generated for ${email}`);
