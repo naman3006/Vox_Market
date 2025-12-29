@@ -24,10 +24,19 @@ export class HttpExceptionFilter<
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const message =
+    let message =
       exception instanceof HttpException
         ? exception.getResponse()
-        : { message: 'Internal server error' };
+        : 'Internal server error';
+
+    if (typeof message === 'object' && message !== null && !Array.isArray(message)) {
+      // If the response is an object with a message property (NestJS default), use that.
+      // Otherwise, use the whole object or a default.
+      const msg = (message as any).message; // eslint-disable-line @typescript-eslint/no-explicit-any
+      if (msg) {
+        message = msg;
+      }
+    }
 
     const errorResponse = {
       statusCode: status,

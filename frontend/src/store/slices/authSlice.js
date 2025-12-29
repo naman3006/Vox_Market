@@ -31,12 +31,18 @@ export const register = createAsyncThunk(
         token: res.data.data.token,
       };
     } catch (err) {
-      return rejectWithValue({
-        message:
-          err.response?.data?.message ||
-          err.message ||
-          "Registration failed",
-      });
+      let message = "Registration failed";
+
+      if (err.response?.data?.message) {
+        const msg = err.response.data.message;
+        message = typeof msg === 'string'
+          ? msg
+          : (typeof msg === 'object' && msg.message ? msg.message : JSON.stringify(msg));
+      } else if (err.message) {
+        message = err.message;
+      }
+
+      return rejectWithValue({ message });
     }
   }
 );
@@ -61,12 +67,18 @@ export const login = createAsyncThunk(
         token: res.data.data.token,
       };
     } catch (err) {
-      return rejectWithValue({
-        message:
-          err.response?.data?.message ||
-          err.message ||
-          "Login failed",
-      });
+      let message = "Login failed";
+
+      if (err.response?.data?.message) {
+        const msg = err.response.data.message;
+        message = typeof msg === 'string'
+          ? msg
+          : (typeof msg === 'object' && msg.message ? msg.message : JSON.stringify(msg));
+      } else if (err.message) {
+        message = err.message;
+      }
+
+      return rejectWithValue({ message });
     }
   }
 );
@@ -79,12 +91,12 @@ export const getProfile = createAsyncThunk(
       return res.data.data;
 
     } catch (err) {
-      return rejectWithValue({
-        message:
-          err.response?.data?.message ||
-          err.message ||
-          "Failed to fetch profile"
-      });
+      let message = "Failed to fetch profile";
+      if (err.response?.data?.message) {
+        const msg = err.response.data.message;
+        message = typeof msg === 'string' ? msg : JSON.stringify(msg);
+      } else if (err.message) message = err.message;
+      return rejectWithValue({ message });
     }
   }
 );
@@ -96,12 +108,12 @@ export const updateProfile = createAsyncThunk(
       const res = await api.patch(`/users/${id}`, data);
       return res.data.data;
     } catch (err) {
-      return rejectWithValue({
-        message:
-          err.response?.data?.message ||
-          err.message ||
-          "Failed to update profile",
-      });
+      let message = "Failed to update profile";
+      if (err.response?.data?.message) {
+        const msg = err.response.data.message;
+        message = typeof msg === 'string' ? msg : JSON.stringify(msg);
+      } else if (err.message) message = err.message;
+      return rejectWithValue({ message });
     }
   }
 );
@@ -120,12 +132,12 @@ export const uploadAvatar = createAsyncThunk(
       });
       return res.data.data;
     } catch (err) {
-      return rejectWithValue({
-        message:
-          err.response?.data?.message ||
-          err.message ||
-          "Failed to upload avatar",
-      });
+      let message = "Failed to upload avatar";
+      if (err.response?.data?.message) {
+        const msg = err.response.data.message;
+        message = typeof msg === 'string' ? msg : JSON.stringify(msg);
+      } else if (err.message) message = err.message;
+      return rejectWithValue({ message });
     }
   }
 );
@@ -137,12 +149,12 @@ export const deleteAccount = createAsyncThunk(
       await api.post(`/users/${id}/delete`, { password });
       return id;
     } catch (err) {
-      return rejectWithValue({
-        message:
-          err.response?.data?.message ||
-          err.message ||
-          "Failed to delete account",
-      });
+      let message = "Failed to delete account";
+      if (err.response?.data?.message) {
+        const msg = err.response.data.message;
+        message = typeof msg === 'string' ? msg : JSON.stringify(msg);
+      } else if (err.message) message = err.message;
+      return rejectWithValue({ message });
     }
   }
 );

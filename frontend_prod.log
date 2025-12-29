@@ -1,0 +1,97 @@
+npm warn exec The following package was not found and will be installed: serve@14.2.5
+ WARN  Checking for updates failed (use `--debug` to see full error)
+ INFO  Accepting connections at http://localhost:5173
+ HTTP  12/29/2025 10:20:55 AM 127.0.0.1 GET /
+ HTTP  12/29/2025 10:20:55 AM 127.0.0.1 Returned 200 in 49 ms
+ HTTP  12/29/2025 10:20:56 AM 127.0.0.1 GET /assets/index-C-YAWHJH.js
+ HTTP  12/29/2025 10:20:56 AM 127.0.0.1 Returned 200 in 9 ms
+ HTTP  12/29/2025 10:20:56 AM 127.0.0.1 GET /registerSW.js
+ HTTP  12/29/2025 10:20:56 AM 127.0.0.1 Returned 200 in 2 ms
+ HTTP  12/29/2025 10:20:56 AM 127.0.0.1 GET /assets/index-JB0GBIHu.css
+ HTTP  12/29/2025 10:20:56 AM 127.0.0.1 Returned 200 in 6 ms
+ HTTP  12/29/2025 10:20:56 AM 127.0.0.1 GET /locales/en-GB/translation.json
+ HTTP  12/29/2025 10:20:56 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:20:56 AM 127.0.0.1 GET /locales/en/translation.json
+ HTTP  12/29/2025 10:20:56 AM 127.0.0.1 Returned 200 in 2 ms
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 GET /sw.js
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 GET /assets/LOGO2-BAwn95eF.jpeg
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 GET /assets/LOGO2-BAwn95eF.jpeg
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 Returned 304 in 1 ms
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 GET /workbox-8c29f6e4.js
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 GET /registerSW.js
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 GET /index.html
+ HTTP  12/29/2025 10:20:57 AM 127.0.0.1 Returned 301 in 1 ms
+ HTTP  12/29/2025 10:20:58 AM 127.0.0.1 GET /manifest.webmanifest
+ HTTP  12/29/2025 10:20:58 AM 127.0.0.1 Returned 200 in 2 ms
+ HTTP  12/29/2025 10:20:58 AM 127.0.0.1 GET /pwa-192x192.png
+ HTTP  12/29/2025 10:20:58 AM 127.0.0.1 Returned 200 in 3 ms
+ HTTP  12/29/2025 10:20:58 AM 127.0.0.1 GET /index
+ HTTP  12/29/2025 10:20:58 AM 127.0.0.1 Returned 301 in 1 ms
+ HTTP  12/29/2025 10:20:58 AM 127.0.0.1 GET /
+ HTTP  12/29/2025 10:20:58 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 GET /assets/index-JB0GBIHu.css
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 Returned 304 in 1 ms
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 GET /assets/Login-ClsqoNk-.js
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 Returned 200 in 2 ms
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 GET /assets/index-C-YAWHJH.js
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 Returned 304 in 1 ms
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 GET /assets/browser-ponyfill-N4MNd6Bw.js
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 GET /assets/WishlistDetail-CQJtNTj7.js
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 GET /assets/Wishlist-B06OGdSA.js
+ HTTP  12/29/2025 10:20:59 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:00 AM 127.0.0.1 GET /assets/SharedWishlist-DIAkjFB0.js
+ HTTP  12/29/2025 10:21:00 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:00 AM 127.0.0.1 GET /assets/ForgotPassword-TUijLWOE.js
+ HTTP  12/29/2025 10:21:00 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:00 AM 127.0.0.1 GET /assets/SellerOrders-BiHY0y1M.js
+ HTTP  12/29/2025 10:21:00 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:00 AM 127.0.0.1 GET /assets/RewardsCenter-DE_w-fWo.js
+ HTTP  12/29/2025 10:21:00 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:01 AM 127.0.0.1 GET /assets/Register-XHOKaywe.js
+ HTTP  12/29/2025 10:21:01 AM 127.0.0.1 Returned 200 in 2 ms
+ HTTP  12/29/2025 10:21:01 AM 127.0.0.1 GET /assets/Profile-DlvsC0gJ.js
+ HTTP  12/29/2025 10:21:01 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:01 AM 127.0.0.1 GET /assets/Products-DAVkhyD8.js
+ HTTP  12/29/2025 10:21:01 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:02 AM 127.0.0.1 GET /assets/ProductManagement-BeIylOm2.js
+ HTTP  12/29/2025 10:21:02 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:03 AM 127.0.0.1 GET /assets/ProductDetail-BJHqjwtz.js
+ HTTP  12/29/2025 10:21:03 AM 127.0.0.1 Returned 200 in 11 ms
+ HTTP  12/29/2025 10:21:03 AM 127.0.0.1 GET /assets/Orders-Bma0cqA5.js
+ HTTP  12/29/2025 10:21:03 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:03 AM 127.0.0.1 GET /assets/OrderManagement-9Uj8s_ki.js
+ HTTP  12/29/2025 10:21:03 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:04 AM 127.0.0.1 GET /assets/OrderDetails-cGQ5uJ0t.js
+ HTTP  12/29/2025 10:21:04 AM 127.0.0.1 Returned 200 in 2 ms
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 GET /assets/Notifications-TkEceDsS.js
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 GET /assets/Login-ClsqoNk-.js
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 Returned 304 in 1 ms
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 GET /assets/ForgotPassword-TUijLWOE.js
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 Returned 304 in 1 ms
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 GET /assets/CouponManagement-CVOb-jSq.css
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 GET /assets/CouponManagement-6H02dInc.js
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 GET /assets/Checkout-qTisr60S.js
+ HTTP  12/29/2025 10:21:05 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:06 AM 127.0.0.1 GET /assets/CategoryManagement-DRlnVe-5.js
+ HTTP  12/29/2025 10:21:06 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:06 AM 127.0.0.1 GET /assets/Cart-DAEAUvTw.js
+ HTTP  12/29/2025 10:21:06 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:06 AM 127.0.0.1 GET /assets/AdminDashboard-7pPAlmQy.js
+ HTTP  12/29/2025 10:21:06 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:07 AM 127.0.0.1 GET /assets/Addresses-BCAOCti3.js
+ HTTP  12/29/2025 10:21:07 AM 127.0.0.1 Returned 200 in 1 ms
+ HTTP  12/29/2025 10:21:07 AM 127.0.0.1 GET /pwa-192x192.png
+ HTTP  12/29/2025 10:21:07 AM 127.0.0.1 Returned 200 in 0 ms
+ HTTP  12/29/2025 10:21:07 AM 127.0.0.1 GET /pwa-512x512.png
+ HTTP  12/29/2025 10:21:07 AM 127.0.0.1 Returned 200 in 2 ms
+
+ INFO  Gracefully shutting down. Please wait...
