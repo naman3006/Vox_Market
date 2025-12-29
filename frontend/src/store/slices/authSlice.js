@@ -31,18 +31,12 @@ export const register = createAsyncThunk(
         token: res.data.data.token,
       };
     } catch (err) {
-      let message = "Registration failed";
-
-      if (err.response?.data?.message) {
-        const msg = err.response.data.message;
-        message = typeof msg === 'string'
-          ? msg
-          : (typeof msg === 'object' && msg.message ? msg.message : JSON.stringify(msg));
-      } else if (err.message) {
-        message = err.message;
-      }
-
-      return rejectWithValue({ message });
+      return rejectWithValue({
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Registration failed",
+      });
     }
   }
 );
@@ -67,18 +61,12 @@ export const login = createAsyncThunk(
         token: res.data.data.token,
       };
     } catch (err) {
-      let message = "Login failed";
-
-      if (err.response?.data?.message) {
-        const msg = err.response.data.message;
-        message = typeof msg === 'string'
-          ? msg
-          : (typeof msg === 'object' && msg.message ? msg.message : JSON.stringify(msg));
-      } else if (err.message) {
-        message = err.message;
-      }
-
-      return rejectWithValue({ message });
+      return rejectWithValue({
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Login failed",
+      });
     }
   }
 );
@@ -91,12 +79,12 @@ export const getProfile = createAsyncThunk(
       return res.data.data;
 
     } catch (err) {
-      let message = "Failed to fetch profile";
-      if (err.response?.data?.message) {
-        const msg = err.response.data.message;
-        message = typeof msg === 'string' ? msg : JSON.stringify(msg);
-      } else if (err.message) message = err.message;
-      return rejectWithValue({ message });
+      return rejectWithValue({
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to fetch profile"
+      });
     }
   }
 );
@@ -108,12 +96,12 @@ export const updateProfile = createAsyncThunk(
       const res = await api.patch(`/users/${id}`, data);
       return res.data.data;
     } catch (err) {
-      let message = "Failed to update profile";
-      if (err.response?.data?.message) {
-        const msg = err.response.data.message;
-        message = typeof msg === 'string' ? msg : JSON.stringify(msg);
-      } else if (err.message) message = err.message;
-      return rejectWithValue({ message });
+      return rejectWithValue({
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to update profile",
+      });
     }
   }
 );
@@ -132,12 +120,12 @@ export const uploadAvatar = createAsyncThunk(
       });
       return res.data.data;
     } catch (err) {
-      let message = "Failed to upload avatar";
-      if (err.response?.data?.message) {
-        const msg = err.response.data.message;
-        message = typeof msg === 'string' ? msg : JSON.stringify(msg);
-      } else if (err.message) message = err.message;
-      return rejectWithValue({ message });
+      return rejectWithValue({
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to upload avatar",
+      });
     }
   }
 );
@@ -149,12 +137,12 @@ export const deleteAccount = createAsyncThunk(
       await api.post(`/users/${id}/delete`, { password });
       return id;
     } catch (err) {
-      let message = "Failed to delete account";
-      if (err.response?.data?.message) {
-        const msg = err.response.data.message;
-        message = typeof msg === 'string' ? msg : JSON.stringify(msg);
-      } else if (err.message) message = err.message;
-      return rejectWithValue({ message });
+      return rejectWithValue({
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to delete account",
+      });
     }
   }
 );
@@ -303,7 +291,6 @@ const authSlice = createSlice({
           }
           saveUsers(state.users);
         }
-
         state.error = null;
       })
       .addCase(updateProfile.rejected, (state, action) => {
@@ -363,7 +350,7 @@ const authSlice = createSlice({
   },
 });
 
-// ------------------------------------------------------
+
 export const { } = authSlice.actions;
 
 export const selectUser = (s) => s.auth.user;
