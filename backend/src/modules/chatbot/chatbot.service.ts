@@ -192,18 +192,22 @@ export class ChatbotService {
 
         CRITICAL: If the user indicates a shopping intent (searching, filtering, sorting, or navigating), you MUST return a strict JSON object (no markdown, no extra text) with this structure:
         {
-          "action": "SEARCH", // or "NAVIGATE"
+          "action": "SEARCH" | "NAVIGATE" | "ADD_TO_CART" | "TRACK_ORDER" | "CLEAR_CART",
           "params": {
-            "query": "string", // search term
-            "color": "string",
-            "category": "string",
-            "maxPrice": number,
-            "minPrice": number,
-            "sort": "price_asc" | "price_desc" | "newest"
+            "query": "string", // for SEARCH
+            "route": "string", // for NAVIGATE (e.g., "/cart", "/profile", "/orders")
+            "productId": "string", // for ADD_TO_CART (extract from Context [ID: ...])
+            "quantity": number, // for ADD_TO_CART (default 1)
+            "orderId": "string" // for TRACK_ORDER
           },
           "text": "Brief confirmation text to speak to the user"
         }
 
+        Examples:
+        - "Show me red dresses" -> {"action": "SEARCH", "params": {"query": "red dresses"}, "text": "Searching for red dresses."}
+        - "Go to my cart" -> {"action": "NAVIGATE", "params": {"route": "/cart"}, "text": "Taking you to your cart."}
+        - "Add the first product to cart" -> {"action": "ADD_TO_CART", "params": {"productId": "...", "quantity": 1}, "text": "Added to cart."}
+        
         If it is a general question, just return the plain text response.
         `;
   }
@@ -263,7 +267,7 @@ export class ChatbotService {
         if (search.products.length > 0) {
           context +=
             `\nProducts found:\n` +
-            search.products.map((p) => `- ${p.title} ($${p.price})`).join('\n');
+            search.products.map((p) => `- [ID: ${p._id}] ${p.title} ($${p.price}) - ${p.stock > 0 ? 'In Stock' : 'Out of Stock'}`).join('\n');
         }
       }
     } catch (e) {

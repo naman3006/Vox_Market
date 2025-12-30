@@ -5,6 +5,9 @@ import { IconButton, Paper, Typography, Box, Avatar, TextField, InputAdornment }
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import CloseIcon from '@mui/icons-material/Close';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addToCart, clearCart } from '../../store/slices/cartSlice';
 import api from "../../store/api/api";
 
 const ChatWidget = () => {
@@ -16,6 +19,8 @@ const ChatWidget = () => {
     const [isTyping, setIsTyping] = useState(false);
     const { token } = useSelector(state => state.auth);
     const bottomRef = useRef(null);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     // Scroll to bottom
     useEffect(() => {
@@ -40,15 +45,56 @@ const ChatWidget = () => {
                 text: m.text
             }));
 
-            // If logged in, send with auth token
-            let response;
-            if (token) {
-                const res = await api.post('/chatbot/message', { message: userMsg.text, history });
-                response = res.data.data;
-            } else {
-                // Basic response for guests
-                const res = await api.post('/chatbot/message', { message: userMsg.text, history });
-                response = res.data.data;
+            // Send message to API
+            const res = await api.post('/chatbot/message', { message: userMsg.text, history });
+            const response = res.data.data; // Now contains { text, action, params }
+
+            // Handle Advanced Actions
+            if (response.action) {
+                switch (response.action) {
+                    case 'SEARCH':
+                        if (response.params?.query) {
+                            navigate(`/products?search=${encodeURIComponent(response.params.query)}`);
+                        }
+                        break;
+                    case 'NAVIGATE':
+                        if (response.params?.route) {
+                            navigate(response.params.route);
+                        }
+                        break;
+                    case 'ADD_TO_CART':
+                        if (response.params?.productId) {
+                            if (!token) {
+                                setMessages(prev => [...prev, { id: Date.now().toString(), text: "Please login to add items to your cart.", sender: 'bot' }]);
+                                setTimeout(() => navigate('/login'), 2000);
+                                setIsTyping(false);
+                                return; // Stop processing
+                            }
+                            dispatch(addToCart({
+                                productId: response.params.productId,
+                                quantity: response.params.quantity || 1
+                            })).then((actionResult) => {
+                                if (addToCart.fulfilled.match(actionResult)) {
+                                    // Success
+                                } else {
+                                    console.error("Failed to add to cart");
+                                }
+                            });
+                        }
+                        break;
+                    case 'TRACK_ORDER':
+                        if (response.params?.orderId) {
+                            if (!token) {
+                                navigate('/login');
+                            } else {
+                                navigate(`/orders/${response.params.orderId}`);
+                            }
+                        }
+                        break;
+                    case 'CLEAR_CART':
+                        dispatch(clearCart());
+                        break;
+                }
             }
 
             setMessages(prev => [...prev, { id: Date.now().toString(), text: response.text, sender: 'bot' }]);

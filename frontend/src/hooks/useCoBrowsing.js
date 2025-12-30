@@ -27,7 +27,7 @@ export const useCoBrowsing = () => {
         }, 50),
         [socket]
     );
-    
+
     useEffect(() => {
         const newSocket = io(`${SOCKET_URL}/co-browsing`, {
             autoConnect: true,
