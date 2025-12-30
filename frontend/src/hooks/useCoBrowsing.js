@@ -28,6 +28,13 @@ export const useCoBrowsing = () => {
         [socket]
     );
 
+    const sessionRef = useRef(null);
+
+    // Update ref whenever session changes
+    useEffect(() => {
+        sessionRef.current = session;
+    }, [session]);
+
     useEffect(() => {
         const newSocket = io(`${SOCKET_URL}/co-browsing`, {
             autoConnect: true,
@@ -44,7 +51,9 @@ export const useCoBrowsing = () => {
                 const { sessionId, userId, username } = JSON.parse(savedSession);
                 newSocket.emit('rejoin_session', { sessionId, userId, username }, (response) => {
                     if (response.success) {
-                        setSession({ ...response, sessionId }); // Ensure sessionId is in state
+                        const sessionData = { ...response, sessionId };
+                        setSession(sessionData); // Ensure sessionId is in state
+                        sessionRef.current = sessionData;
                         updateParticipants(response.participants);
                         toast.success('Reconnected to session!');
                     } else {
@@ -60,14 +69,26 @@ export const useCoBrowsing = () => {
         });
 
         newSocket.on('participant_joined', (data) => {
-            const { userId, username, color, role } = data;
+            const { userId, username, color, role, status } = data;
             toast.info(`${username} joined the session!`);
 
             setParticipants(prev => {
-                const next = { ...prev, [userId]: { username, color, role, x: 0, y: 0 } };
+                const next = { ...prev, [userId]: { username, color, role, status: status || 'online', x: 0, y: 0 } };
                 participantsRef.current = next;
                 return next;
             });
+        });
+
+        newSocket.on('participant_status', (data) => {
+            const { userId, status } = data;
+            setParticipants(prev => {
+                if (!prev[userId]) return prev;
+                const next = { ...prev, [userId]: { ...prev[userId], status } };
+                participantsRef.current = next;
+                return next;
+            });
+            if (status === 'offline') toast.warning(`User disconnected (waiting...)`);
+            if (status === 'online') toast.success(`User reconnected!`);
         });
 
         newSocket.on('participant_left', (data) => {
@@ -118,9 +139,10 @@ export const useCoBrowsing = () => {
         newSocket.on('reaction_received', (data) => {
             const { userId, emoji } = data; // Now expecting userId
             const participant = participantsRef.current[userId];
-            // Also handle self-reaction if broadast includes sender (it usually does for simplicity, but let's see)
+            // Access session from ref to avoid closure staleness
+            const currentSession = sessionRef.current;
 
-            const target = participant || (session && session.userId === userId ? { x: window.innerWidth / 2, y: window.innerHeight / 2, color: session.color } : null);
+            const target = participant || (currentSession && currentSession.userId === userId ? { x: window.innerWidth / 2, y: window.innerHeight / 2, color: currentSession.color } : null);
 
             if (target) {
                 const reaction = {
@@ -144,9 +166,7 @@ export const useCoBrowsing = () => {
         return () => {
             if (newSocket) newSocket.disconnect();
         };
-    }, [session]); // session dependency for syncing logic if needed, though 'session' variable inside connect listener might be stale if closure..
-    // Actually, local storage read inside connect is safe. but 'session' for self-check in reaction might be stale.
-    // Fixed by using ref or functional update, but simpler to just depend on it or keep logic clean.
+    }, []); // Empty dependency array to prevent loops!
 
     // Listen to local navigation changes and broadcast
     useEffect(() => {

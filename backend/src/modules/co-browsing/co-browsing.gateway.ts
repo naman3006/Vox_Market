@@ -18,8 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
   namespace: 'co-browsing',
 })
 export class CoBrowsingGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -27,7 +26,7 @@ export class CoBrowsingGateway
 
   // sessionId -> Set<userId>
   private sessions = new Map<string, Set<string>>();
-  // userId -> { socketId, sessionId, username, color, role }
+  // userId -> { socketId, sessionId, username, color, role, status }
   private users = new Map<
     string,
     {
@@ -36,10 +35,13 @@ export class CoBrowsingGateway
       username: string;
       color: string;
       role: 'HOST' | 'GUEST';
+      status: 'online' | 'offline';
     }
   >();
-  // socketId -> userId (for quick lookup on disconnect)
+  // socketId -> userId
   private socketToUser = new Map<string, string>();
+  // userId -> Timeout
+  private timeouts = new Map<string, NodeJS.Timeout>();
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -52,44 +54,44 @@ export class CoBrowsingGateway
     if (userId) {
       const user = this.users.get(userId);
       if (user) {
-        // We DON'T delete the user immediately on disconnect to allow reconnection.
-        // We just mark them as inactive or simply remove the socket link.
-        // For now, we will notify others that they "disconnected" but keep them in the session state for a bit?
-        // Actually, for a simple "refresh" support, we can just remove the socketId.
+        // Soft Disconnect: Mark offline and set timeout
+        user.status = 'offline';
+        this.server.to(user.sessionId).emit('participant_status', { userId, status: 'offline' });
 
-        // If we want to show "User left", we might want a timeout.
-        // But for now, let's keep it simple: strict disconnect = left.
-        // The 'rejoin' will handle adding them back.
-
-        // WAIT: If we want true persistence (refresh page), we shouldn't "leave" the session immediately.
-        // However, without a persistent DB, memory is all we have.
-        // Let's implement a "soft disconnect".
-
-        // Logic:
-        // 1. Remove socketId from user record.
-        // 2. Notify others "User disconnected (waiting for reconnect)".
-        // 3. Set a timeout to clean up if they don't return? (Optional for this sprint)
-
-        // Active decision: To keep the UI clean, we will emit 'participant_left'
-        // BUT we keep the data in `users` map for a short while or indefinitely in this memory session.
-
-        const { sessionId } = user;
-        const session = this.sessions.get(sessionId);
-
-        if (session) {
-          session.delete(userId);
-          this.server
-            .to(sessionId)
-            .emit('participant_left', { userId, socketId: client.id });
-
-          if (session.size === 0) {
-            this.sessions.delete(sessionId);
-          }
+        // Clear existing timeout if any (unlikely but safe)
+        if (this.timeouts.has(userId)) {
+          clearTimeout(this.timeouts.get(userId));
         }
 
+        // Set 2 minute grace period
+        const timeout = setTimeout(() => {
+          this.forceRemoveUser(userId);
+        }, 120000); // 2 mins
+
+        this.timeouts.set(userId, timeout);
+
+        // Remove socket mapping immediately as this socket is dead
         this.socketToUser.delete(client.id);
-        this.users.delete(userId); // For now, fully remove to avoid stale state issues until complex persistence is needed.
       }
+    }
+  }
+
+  private forceRemoveUser(userId: string) {
+    const user = this.users.get(userId);
+    if (user) {
+      const { sessionId } = user;
+      const session = this.sessions.get(sessionId);
+
+      if (session) {
+        session.delete(userId);
+        this.server.to(sessionId).emit('participant_left', { userId });
+        if (session.size === 0) {
+          this.sessions.delete(sessionId);
+        }
+      }
+      this.users.delete(userId);
+      this.timeouts.delete(userId);
+      this.logger.log(`User ${userId} fully removed after timeout.`);
     }
   }
 
@@ -100,7 +102,7 @@ export class CoBrowsingGateway
   ) {
     const sessionId = uuidv4().slice(0, 8);
     const color = this.getRandomColor();
-    const userId = data.userId || uuidv4(); // User sends their existing ID or we generate one
+    const userId = data.userId || uuidv4();
 
     this.sessions.set(sessionId, new Set([userId]));
     this.users.set(userId, {
@@ -109,6 +111,7 @@ export class CoBrowsingGateway
       username: data.username || 'Host',
       color,
       role: 'HOST',
+      status: 'online'
     });
     this.socketToUser.set(client.id, userId);
 
@@ -131,13 +134,15 @@ export class CoBrowsingGateway
 
     const userId = data.userId || uuidv4();
 
-    // Check if user is already "in" (reconnection case where server didn't clean up yet)?
-    // Or just overwrite.
+    // Check if rejoining (recovering state)
+    if (this.users.has(userId)) {
+      return this.handleRejoinSession(client, { sessionId, userId, username });
+    }
 
     const color = this.getRandomColor();
     this.sessions.get(sessionId).add(userId);
 
-    const role = 'GUEST'; // Joiners are always guests initially
+    const role = 'GUEST';
 
     this.users.set(userId, {
       socketId: client.id,
@@ -145,6 +150,7 @@ export class CoBrowsingGateway
       username: username || 'Guest',
       color,
       role,
+      status: 'online'
     });
     this.socketToUser.set(client.id, userId);
 
@@ -157,6 +163,7 @@ export class CoBrowsingGateway
       username: username || 'Guest',
       color,
       role,
+      status: 'online'
     });
 
     return {
@@ -176,20 +183,49 @@ export class CoBrowsingGateway
   ) {
     const { sessionId, userId, username } = data;
 
-    // If session allows "reclaiming" a user ID or just joining as a known user
     if (!this.sessions.has(sessionId)) {
       return { error: 'Session expired or not found' };
     }
 
-    // We treat it similar to join, but we might want to preserve their old color/role if we had a database.
-    // Since it's in-memory and we deleted on disconnect, we treat this as a fresh join but with a specific UserID.
-    // If we hadn't deleted in handleDisconnect, we would recover state here.
+    const user = this.users.get(userId);
+    if (!user) {
+      // Fallback to normal join if user record is gone (timeout passed)
+      return this.handleJoinSession(client, data);
+    }
 
-    // For the "Advanced" requirement: Let's assume we want to support recovering the state if we didn't delete it.
-    // But since we *did* delete it above (simple approach), we just re-add efficiently.
+    // Recover User
+    if (this.timeouts.has(userId)) {
+      clearTimeout(this.timeouts.get(userId));
+      this.timeouts.delete(userId);
+    }
 
-    return this.handleJoinSession(client, { sessionId, username, userId });
+    // Update User Socket
+    user.socketId = client.id;
+    user.status = 'online';
+    this.socketToUser.set(client.id, userId);
+
+    // Explicitly update username if changed (optional)
+    if (username) user.username = username;
+
+    client.join(sessionId);
+
+    // Notify others of return
+    client.to(sessionId).emit('participant_status', { userId, status: 'online' });
+
+    // Also emit 'participant_joined' just in case someone missed the original join or for strict sync
+    // But 'status' online is cleaner. Let's send update to be sure.
+    client.to(sessionId).emit('participant_joined', { ...user, userId });
+
+    return {
+      success: true,
+      userId,
+      color: user.color,
+      role: user.role,
+      participants: this.getParticipants(sessionId, userId),
+    };
   }
+
+  // ... (cursor_move, navigate, etc. unchanged)
 
   @SubscribeMessage('cursor_move')
   handleCursorMove(
@@ -198,7 +234,7 @@ export class CoBrowsingGateway
   ) {
     const userId = this.socketToUser.get(client.id);
     const user = this.users.get(userId);
-    if (user) {
+    if (user && user.status === 'online') {
       client.to(user.sessionId).emit('cursor_update', {
         userId,
         socketId: client.id,
@@ -210,6 +246,7 @@ export class CoBrowsingGateway
     }
   }
 
+  // ... Keep handleNavigate, handleSyncAction, handleReaction same ...
   @SubscribeMessage('navigate')
   handleNavigate(
     @ConnectedSocket() client: Socket,
@@ -250,8 +287,6 @@ export class CoBrowsingGateway
     const userId = this.socketToUser.get(client.id);
     const user = this.users.get(userId);
     if (user) {
-      // Broadcast to everyone else (and maybe back to self if frontend needs it, but usually local optimistic)
-      // But frontend "reaction_received" logic relies on receiving it.
       this.server.to(user.sessionId).emit('reaction_received', {
         userId,
         emoji: data.emoji,

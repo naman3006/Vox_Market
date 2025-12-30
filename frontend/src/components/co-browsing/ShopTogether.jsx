@@ -7,7 +7,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { toast } from 'react-toastify';
 import { useLocation } from 'react-router-dom';
 
-const ShopTogether = ({ session, isConnected, onCreateSession, onJoinSession, onLeaveSession }) => {
+const ShopTogether = ({ session, participants, isConnected, onCreateSession, onJoinSession, onLeaveSession }) => {
     const [open, setOpen] = useState(false);
     const [username, setUsername] = useState('');
     const [joinId, setJoinId] = useState('');
@@ -107,6 +107,36 @@ const ShopTogether = ({ session, isConnected, onCreateSession, onJoinSession, on
                             <Typography variant="body2" color="text.secondary" paragraph>
                                 ID: <strong>{session.sessionId}</strong>
                             </Typography>
+
+                            {/* Participants List */}
+                            <Box sx={{ mb: 2, textAlign: 'left', bgcolor: 'grey.50', p: 1, borderRadius: 1 }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                                    PARTICIPANTS ({Object.keys(participants || {}).length + 1})
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                    {/* Self */}
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: isConnected ? '#4caf50' : '#bdbdbd' }} />
+                                        <Typography variant="body2" fontWeight="bold">
+                                            {session.username} (You)
+                                        </Typography>
+                                    </Box>
+                                    {/* Others */}
+                                    {participants && Object.values(participants).map((p, i) => (
+                                        <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Box sx={{
+                                                width: 8,
+                                                height: 8,
+                                                borderRadius: '50%',
+                                                bgcolor: p.status === 'offline' ? '#bdbdbd' : p.color
+                                            }} />
+                                            <Typography variant="body2" sx={{ color: p.status === 'offline' ? 'text.disabled' : 'text.primary' }}>
+                                                {p.username} {p.status === 'offline' && '(Offline)'}
+                                            </Typography>
+                                        </Box>
+                                    ))}
+                                </Box>
+                            </Box>
 
                             <Button
                                 variant="outlined"

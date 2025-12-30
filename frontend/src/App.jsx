@@ -317,6 +317,7 @@ const App = () => {
       <ActivityToast />
       <ShopTogether
         session={session}
+        participants={participants}
         isConnected={isCoConnected}
         onCreateSession={createSession}
         onJoinSession={joinSession}

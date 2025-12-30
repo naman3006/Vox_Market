@@ -1,34 +1,30 @@
-2025-12-30T05:10:03Z INF Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
-2025-12-30T05:10:03Z INF Requesting new quick Tunnel on trycloudflare.com...
-2025-12-30T05:10:15Z INF +--------------------------------------------------------------------------------------------+
-2025-12-30T05:10:15Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
-2025-12-30T05:10:15Z INF |  https://cheapest-way-advisors-adsl.trycloudflare.com                                      |
-2025-12-30T05:10:15Z INF +--------------------------------------------------------------------------------------------+
-2025-12-30T05:10:15Z INF Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]
-2025-12-30T05:10:15Z INF Version 2025.11.1 (Checksum 991dffd8889ee9f0147b6b48933da9e4407e68ea8c6d984f55fa2d3db4bb431d)
-2025-12-30T05:10:15Z INF GOOS: linux, GOVersion: go1.24.9, GoArch: amd64
-2025-12-30T05:10:15Z INF Settings: map[ha-connections:1 no-autoupdate:true protocol:quic url:http://localhost:3000]
-2025-12-30T05:10:15Z INF Generated Connector ID: 1b755c14-235a-48b7-af90-a6da0f9d0c6c
-2025-12-30T05:10:15Z INF Initial protocol quic
-2025-12-30T05:10:15Z INF ICMP proxy will use 192.168.1.192 as source for IPv4
-2025-12-30T05:10:15Z INF ICMP proxy will use fe80::f942:6cd2:2541:ce93 in zone enp1s0 as source for IPv6
-2025-12-30T05:10:20Z ERR Cannot determine default origin certificate path. No file cert.pem in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]. You need to specify the origin certificate path by specifying the origincert option in the configuration file, or set TUNNEL_ORIGIN_CERT environment variable originCertPath=
-2025-12-30T05:10:20Z INF ICMP proxy will use 192.168.1.192 as source for IPv4
-2025-12-30T05:10:20Z INF ICMP proxy will use fe80::f942:6cd2:2541:ce93 in zone enp1s0 as source for IPv6
-2025-12-30T05:10:20Z INF Starting metrics server on 127.0.0.1:20241/metrics
-2025-12-30T05:10:20Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.53
-2025/12/30 10:40:20 failed to sufficiently increase receive buffer size (was: 208 kiB, wanted: 7168 kiB, got: 416 kiB). See https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes for details.
-2025-12-30T05:10:21Z INF Registered tunnel connection connIndex=0 connection=a5cbd824-3676-4207-afd5-d641535a0a95 event=0 ip=198.41.200.53 location=bom12 protocol=quic
-2025-12-30T05:11:40Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:3000
-2025-12-30T05:11:40Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://cheapest-way-advisors-adsl.trycloudflare.com/auth/profile event=0 ip=198.41.200.53 type=http
-2025-12-30T05:11:40Z ERR  error="Incoming request ended abruptly: context canceled" connIndex=0 event=1 ingressRule=0 originService=http://localhost:3000
-2025-12-30T05:11:40Z ERR Request failed error="Incoming request ended abruptly: context canceled" connIndex=0 dest=https://cheapest-way-advisors-adsl.trycloudflare.com/user-activity/me?limit=50 event=0 ip=198.41.200.53 type=http
-2025-12-30T05:12:18Z INF Initiating graceful shutdown due to signal interrupt ...
-2025-12-30T05:12:18Z ERR failed to run the datagram handler error="context canceled" connIndex=0 event=0 ip=198.41.200.53
-2025-12-30T05:12:18Z ERR failed to serve tunnel connection error="accept stream listener encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.53
-2025-12-30T05:12:18Z ERR Serve tunnel error error="accept stream listener encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.53
-2025-12-30T05:12:18Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.200.53
-2025-12-30T05:12:18Z ERR Connection terminated connIndex=0
-2025-12-30T05:12:18Z ERR no more connections active and exiting
-2025-12-30T05:12:18Z INF Tunnel server stopped
-2025-12-30T05:12:18Z INF Metrics server stopped
+2025-12-30T06:25:26Z INF Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
+2025-12-30T06:25:26Z INF Requesting new quick Tunnel on trycloudflare.com...
+2025-12-30T06:25:36Z INF +--------------------------------------------------------------------------------------------+
+2025-12-30T06:25:36Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+2025-12-30T06:25:36Z INF |  https://shaft-expertise-excited-events.trycloudflare.com                                  |
+2025-12-30T06:25:36Z INF +--------------------------------------------------------------------------------------------+
+2025-12-30T06:25:36Z INF Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]
+2025-12-30T06:25:36Z INF Version 2025.11.1 (Checksum 991dffd8889ee9f0147b6b48933da9e4407e68ea8c6d984f55fa2d3db4bb431d)
+2025-12-30T06:25:36Z INF GOOS: linux, GOVersion: go1.24.9, GoArch: amd64
+2025-12-30T06:25:36Z INF Settings: map[ha-connections:1 no-autoupdate:true protocol:quic url:http://localhost:3000]
+2025-12-30T06:25:36Z INF Generated Connector ID: 1c4b0043-2aff-42c6-ba28-73380f93d6b3
+2025-12-30T06:25:36Z INF Initial protocol quic
+2025-12-30T06:25:36Z INF ICMP proxy will use 192.168.1.192 as source for IPv4
+2025-12-30T06:25:36Z INF ICMP proxy will use fe80::f942:6cd2:2541:ce93 in zone enp1s0 as source for IPv6
+2025-12-30T06:25:38Z ERR Cannot determine default origin certificate path. No file cert.pem in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]. You need to specify the origin certificate path by specifying the origincert option in the configuration file, or set TUNNEL_ORIGIN_CERT environment variable originCertPath=
+2025-12-30T06:25:38Z INF ICMP proxy will use 192.168.1.192 as source for IPv4
+2025-12-30T06:25:38Z INF ICMP proxy will use fe80::f942:6cd2:2541:ce93 in zone enp1s0 as source for IPv6
+2025-12-30T06:25:38Z INF Starting metrics server on 127.0.0.1:20242/metrics
+2025-12-30T06:25:38Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.113
+2025/12/30 11:55:38 failed to sufficiently increase receive buffer size (was: 208 kiB, wanted: 7168 kiB, got: 416 kiB). See https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes for details.
+2025-12-30T06:25:39Z INF Registered tunnel connection connIndex=0 connection=b9324eb8-c4fe-40f3-8ecc-53f6d1eab124 event=0 ip=198.41.200.113 location=bom11 protocol=quic
+2025-12-30T06:26:19Z INF Initiating graceful shutdown due to signal interrupt ...
+2025-12-30T06:26:19Z ERR failed to run the datagram handler error="context canceled" connIndex=0 event=0 ip=198.41.200.113
+2025-12-30T06:26:19Z ERR failed to serve tunnel connection error="accept stream listener encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.113
+2025-12-30T06:26:19Z ERR Serve tunnel error error="accept stream listener encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.113
+2025-12-30T06:26:19Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.200.113
+2025-12-30T06:26:19Z ERR Connection terminated connIndex=0
+2025-12-30T06:26:19Z ERR no more connections active and exiting
+2025-12-30T06:26:19Z INF Tunnel server stopped
+2025-12-30T06:26:19Z INF Metrics server stopped
