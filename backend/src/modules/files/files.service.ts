@@ -3,12 +3,12 @@ import { v2 as cloudinary } from 'cloudinary';
 import toStream = require('streamifier');
 import * as fs from 'fs';
 import * as path from 'path';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FilesService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   async uploadFile(file: Express.Multer.File): Promise<any> {
     const destination =

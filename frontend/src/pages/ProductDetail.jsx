@@ -11,9 +11,11 @@ import { createReview, findReviewsByProduct } from '../store/slices/reviewsSlice
 import { addToWishlist, removeFromWishlist, createWishlist } from '../store/slices/wishlistSlice';
 import { addToCart } from '../store/slices/cartSlice';
 import { toast } from 'react-toastify';
-import ARViewer from '../components/product/ARViewer';
 import SocialProofBadge from '../components/common/SocialProofBadge';
 import { getOptimizedImageUrl } from '../utils/urlUtils';
+
+// Lazy load ARViewer to avoid bundling @google/model-viewer in the main chunk
+const ARViewer = React.lazy(() => import('../components/product/ARViewer'));
 
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -160,12 +162,14 @@ const ProductDetail = () => {
                 </span>
                 <h3 className="text-lg font-bold text-gray-900">Augmented Reality Experience</h3>
               </div>
-              <ARViewer
-                src={product.arModelUrl}
-                poster={getImageSrc()}
-                placement={product.arPlacement}
-                alt={product.title}
-              />
+              <React.Suspense fallback={<div className="h-[500px] w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center">Loading 3D View...</div>}>
+                <ARViewer
+                  src={product.arModelUrl}
+                  poster={getImageSrc()}
+                  placement={product.arPlacement}
+                  alt={product.title}
+                />
+              </React.Suspense>
             </motion.div>
           )}
         </motion.div>
